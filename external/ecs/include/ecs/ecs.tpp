@@ -12,12 +12,12 @@ namespace ecs {
         GetInstance()->componentManager.RegisterComponent<T>();
     }
 
-    template<typename T>
-    T& ECS::AddComponent(id_t entity) {
+    template<typename T, typename... Args>
+    T& ECS::AddComponent(id_t entity, Args&&... args) {
         auto instance = GetInstance();
 
         // add component
-        return instance->componentManager.AddComponent<T>(entity);
+        auto& component = instance->componentManager.AddComponent<T>(entity, args...);
 
         // update signature
         auto& signature = instance->entityManager.GetSignature(entity);
@@ -25,6 +25,8 @@ namespace ecs {
 
         // update system entities
         instance->systemManager.EntitySignatureChanged(entity, signature);
+
+        return component;
     }
 
     template<typename T>

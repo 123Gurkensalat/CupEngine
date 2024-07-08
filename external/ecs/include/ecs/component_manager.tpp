@@ -35,8 +35,8 @@ namespace ecs {
         ++nextComponentType;
     }
 
-    template<typename T>
-    T& ComponentManager::AddComponent(id_t entity) {
+    template<typename T, typename... Args>
+    T& ComponentManager::AddComponent(id_t entity, Args&&... args) {
         const char* typeName = typeid(T).name();
 
         // register Component on first appearence
@@ -44,7 +44,7 @@ namespace ecs {
             RegisterComponent<T>();
         }
 
-        return GetComponentArray<T>()->Insert(entity);
+        return GetComponentArray<T>()->Insert(entity, args...);
     }
 
     template<typename T>

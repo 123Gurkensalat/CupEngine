@@ -15,8 +15,8 @@ using utils::Event;
 namespace ecs {
     class ComponentManager {
     public:
-        template<typename T>
-        T& AddComponent(id_t entity);
+        template<typename T, typename... Args>
+        T& AddComponent(id_t entity, Args&&... args);
 
         template<typename T>
         void RemoveComponent(id_t entity);

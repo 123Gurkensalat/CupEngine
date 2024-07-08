@@ -20,7 +20,8 @@ namespace ecs {
     public:
         ComponentArray();
 
-        T& Insert(id_t entity);
+        template<typename... Args>
+        T& Insert(id_t entity, Args&&... args);
 
         void Remove(id_t entity);
 

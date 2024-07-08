@@ -18,7 +18,6 @@ namespace ecs {
                 && "A system cannot be registered twice");
 
         auto system = std::make_shared<T>(std::forward<Args>(args)...);
-
         systems.emplace(typeName, system);
         return system;
     }

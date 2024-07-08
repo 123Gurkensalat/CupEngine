@@ -36,8 +36,8 @@ namespace ecs {
         static void RegisterComponent();
         
         /// Adds a new component to given entity
-        template<typename T>
-        static T& AddComponent(id_t entity);
+        template<typename T, typename... Args>
+        static T& AddComponent(id_t entity, Args&&... args);
 
         /// removes a component from given entity
         template<typename T>

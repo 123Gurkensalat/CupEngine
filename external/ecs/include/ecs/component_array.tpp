@@ -5,6 +5,7 @@
 #include "events.hpp"
 
 #include <cassert>
+#include <utility>
 
 namespace ecs {
     template<typename T>
@@ -18,14 +19,15 @@ namespace ecs {
      * @return reference to component
      * */
     template<typename T>
-    T& ComponentArray<T>::Insert(id_t entity) {
+    template<typename... Args>
+    T& ComponentArray<T>::Insert(id_t entity, Args&&... args) {
         assert(entity_to_index.find(entity) == entity_to_index.end() 
                 && "Components can only be added once per entity");
 
         id_t newIndex = size_;
 
         // save component in next free space
-        components[newIndex] = T{};
+        components[newIndex] = T{std::forward<Args>(args)...};
         
         // set sparse array to reference index
         entity_to_index[entity] = newIndex;

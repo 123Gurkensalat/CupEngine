@@ -1,19 +1,16 @@
 #pragma once
 
 #include "ecs/entity.hpp"
-
-#include "ecs/component.hpp"
 #include "ecs/ecs.hpp"
 
 // std
 #include <cassert>
-#include <type_traits>
 
 namespace ecs 
 {
-    template<typename T>
-    T& Entity::AddComponent() {
-        return ECS::AddComponent<T>(id);      
+    template<typename T, typename... Args>
+    T& Entity::AddComponent(Args&&... args) {
+        return ECS::AddComponent<T>(id, args...);      
     }
 
     template<typename T>

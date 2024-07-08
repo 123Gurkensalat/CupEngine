@@ -6,6 +6,7 @@
 #include "graphics/push_constant_data.hpp"
 
 // std
+#include <iostream>
 #include <memory>
 
 // vulkan
@@ -24,7 +25,7 @@ namespace cup {
             : pipeline{pipeline}, pipelineLayout{pipelineLayout} 
         {}
 
-        void RenderEntities(VkCommandBuffer commandBuffer) {
+        void RenderEntities(VkCommandBuffer& commandBuffer) {
             (*pipeline)->bind(commandBuffer);
 
             for (auto entity : entities) {

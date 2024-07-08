@@ -27,12 +27,12 @@ namespace ecs {
         
         /// Adds the given component to the Entity.
         /// @template T: Type of the Component. Must be derived from Component
+        /// @param args: Arguments for constructor call of T.
         /// @return: returns reference to the added component.
-        /// @throws: 
         /// ErrorNotAComponent: if T is not a Component.
         /// WarningAlreadyExists: if T is already a Component of Entity
-        template<typename T>
-        T& AddComponent();
+        template<typename T, typename... Args>
+        T& AddComponent(Args&&... args);
 
         /// Deletes given component.
         /// @return: returns if removal was successful.
