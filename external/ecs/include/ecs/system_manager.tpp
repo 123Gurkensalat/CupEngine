@@ -19,6 +19,7 @@ namespace ecs {
 
         auto system = std::make_shared<T>(std::forward<Args>(args)...);
         systems.emplace(typeName, system);
+        system->Init();
         return system;
     }
 

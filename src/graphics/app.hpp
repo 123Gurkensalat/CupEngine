@@ -1,13 +1,11 @@
 #pragma once
 
 #include "ecs/systems/sprite_renderer_system.hpp"
-#include "pipeline.hpp"
+#include "renderer.hpp"
 #include "window.hpp"
-#include "swap_chain.hpp"
 
 //std
 #include <memory>
-#include <vector>
 
 // vulkan
 #include <vulkan/vulkan_core.h>
@@ -27,21 +25,10 @@ namespace cup {
         void run();
     private:
         void loadEntities();
-        void createPipelineLayout();
-        void createPipeline();
-        void createCommandBuffers();
-        void freeCommandBuffers();
-        void drawFrame();
-        void recreateSwapChain();
-        void recordCommandBuffer(int imageIndex);
-        void renderGameObjects(); // possibly convert this to system
 
         Window window{WIDTH, HEIGHT, "CupEngine"};
         Device device{window};
-        std::unique_ptr<SwapChain> swapChain;
-        std::unique_ptr<Pipeline> pipeline;
-        VkPipelineLayout pipelineLayout;
-        std::vector<VkCommandBuffer> commandBuffers;
+        Renderer renderer{window, device};
         std::shared_ptr<SpriteRendererSystem> spriteRenderer;
     };
 }
