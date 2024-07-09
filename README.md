@@ -6,4 +6,4 @@ A light weight Vulkan game engine
 
 ## Introduction
 
-A standalone and open source version of the cup editor.
+This is not finished. estimated time: 2y
