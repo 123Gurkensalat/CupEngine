@@ -1,12 +1,12 @@
+#include "ecs/events.hpp"
 #include "ecs/typealias.hpp"
 #include "ecs/entity_manager.hpp"
-#include "ecs/events.hpp"
 
 #include <cassert>
 
 namespace ecs {
-    EntityManager::EntityManager() {
-        onEntityDestroyed += [&](id_t entity){ DestroyEntity(entity); };
+    EntityManager::EntityManager(){
+        onEntityDestroyed += [&](id_t entity){DestroyEntity(entity);};
     }
 
     id_t EntityManager::CreateEntity() {

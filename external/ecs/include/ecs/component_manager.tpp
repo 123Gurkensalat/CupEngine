@@ -1,7 +1,6 @@
 #pragma once
 
 #include "component_manager.hpp"
-#include "component_array.hpp"
 #include "typealias.hpp"
 #include "component.hpp"
 
@@ -13,7 +12,7 @@
 
 namespace ecs {
     template<typename T>
-    void ComponentManager::RegisterComponent() {
+    void ComponentManager::RegisterComponent(id_t maxSize) {
         static_assert(std::is_base_of<Component, T>::value, "T must inherit from component");
 
         const char* componentName = typeid(T).name();
@@ -30,9 +29,9 @@ namespace ecs {
         // add component array
         componentArrays.emplace(
                 componentName, 
-                std::make_shared<ComponentArray<T>>());
+                std::make_shared<ComponentArray<T>>(maxSize));
 
-        ++nextComponentType;
+        nextComponentType++;
     }
 
     template<typename T, typename... Args>
@@ -44,17 +43,17 @@ namespace ecs {
             RegisterComponent<T>();
         }
 
-        return GetComponentArray<T>()->Insert(entity, args...);
+        return GetComponentArray<T>()->insert(entity, args...);
     }
 
     template<typename T>
     void ComponentManager::RemoveComponent(id_t entity) {
-        GetComponentArray<T>()->Remove(entity);
+        GetComponentArray<T>()->remove(entity);
     }
 
     template<typename T>
     T& ComponentManager::GetComponent(id_t entity) {
-        return GetComponentArray<T>()->Get(entity);
+        return GetComponentArray<T>()->get(entity);
     }
     
     template<typename T>

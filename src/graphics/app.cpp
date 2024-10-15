@@ -27,7 +27,6 @@ namespace cup {
 
     void App::run() {
         while(!window.shouldClose()) {
-            ecs::onUpdate.Invoke();
             glfwPollEvents();
 
             // check if beginFrame returns nullptr

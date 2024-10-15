@@ -1,4 +1,5 @@
 #include "ecs/ecs.hpp"
+#include "ecs/events.hpp"
 
 #include <utils/singleton.h>
 
@@ -14,8 +15,8 @@ namespace ecs {
 
     void ECS::DestroyEntity(id_t entity) {
         onEntityDestroyed.Invoke(entity);
-        GetInstance()->entityManager.DestroyEntity(entity);
+        //entity manager
+        //components
+        //systemmanager
     }
-
-
 } 

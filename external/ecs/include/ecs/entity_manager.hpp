@@ -2,14 +2,9 @@
 
 #include "typealias.hpp"
 
-// utils
-#include <utils/event.h>
-
 // std
 #include <array>
 #include <stack>
-
-using utils::Event;
 
 namespace ecs {
     class EntityManager {
