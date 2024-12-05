@@ -1,18 +1,27 @@
 #include "device.hpp"
 #include "graphics/window.hpp"
+
+#include <cstdint>
 #include <iostream>
+#include <map>
 #include <stdexcept>
+#include <utility>
 #include <vector>
+
 #include <vulkan/vulkan_core.h>
 
 using cup::Device;
+using cup::QueueFamilyIndices;
 
 Device::Device(cup::Window& window) : window(window) {
     createVkInstance();
     validator.setupDebugMessenger(instance);
+    pickPhysicalDevice();
+    createLogicalDevice();
 }
 
 Device::~Device() {
+    vkDestroyDevice(device, nullptr);
     validator.cleanUpDebugMessenger(instance);
     vkDestroyInstance(instance, nullptr);
 }
@@ -62,5 +71,119 @@ void Device::createVkInstance()
     if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) 
     {
         throw std::runtime_error("failed to create instance!");
+    }
+}
+
+void Device::pickPhysicalDevice() 
+{
+    uint32_t deviceCount = 0;
+    vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+
+    if (deviceCount == 0)
+        throw std::runtime_error("failed to find GPUs with Vulkan support!");
+
+    std::vector<VkPhysicalDevice> devices(deviceCount);
+    vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+
+    std::multimap<uint32_t, VkPhysicalDevice> candidates{};
+
+    // rate devices
+    for (const auto& device : devices) 
+    {
+        uint32_t score = ratePhysicalDeviceSuitability(device);
+        candidates.insert(std::make_pair(score, device));
+    }
+
+    // select device
+    if (candidates.rbegin()->first > 0) 
+    {
+        physicalDevice = candidates.rbegin()->second;
+    } else {
+        throw std::runtime_error("failed to find a suitable GPU");
+    }
+}
+
+uint32_t Device::ratePhysicalDeviceSuitability(VkPhysicalDevice physicalDevice)
+{
+    uint32_t score = 0;
+
+    VkPhysicalDeviceProperties deviceProperties;
+    vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+
+    VkPhysicalDeviceFeatures deviceFeatures;
+    vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
+    
+    // required criteria
+    if (!deviceFeatures.geometryShader)
+        return 0;
+
+    QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+
+    if (!indices.isComplete())
+        return 0;
+    
+    // optional
+    if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+        score += 1000;
+
+    score += deviceProperties.limits.maxImageDimension2D;
+
+    return score;
+}
+
+QueueFamilyIndices Device::findQueueFamilies(VkPhysicalDevice physicalDevice)
+{
+    QueueFamilyIndices indices;
+    uint32_t queueFamilyCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
+
+    std::vector<VkQueueFamilyProperties> queueFamilies{queueFamilyCount};
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
+
+    int i = 0;
+    for (const auto& queueFamily : queueFamilies) {
+        if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            indices.graphicsFamily = i;
+        }
+
+        if (indices.isComplete())
+            break;
+
+        i++;
+    }
+
+    return indices;
+}
+
+void Device::createLogicalDevice() {
+    QueueFamilyIndices indices = findQueueFamilies(physicalDevice); 
+
+    VkDeviceQueueCreateInfo queueCreateInfo{};
+    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+    queueCreateInfo.queueCount = 1;
+    float queuePriority = 1.0f; // ranges from 0 to 1. Where 1 has highest priority
+    queueCreateInfo.pQueuePriorities = &queuePriority;
+
+    VkPhysicalDeviceFeatures deviceFeatures{};
+
+    VkDeviceCreateInfo createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    createInfo.pQueueCreateInfos = &queueCreateInfo;
+    createInfo.queueCreateInfoCount = 1;
+
+    createInfo.pEnabledFeatures = &deviceFeatures;
+    
+    createInfo.enabledExtensionCount = 0;
+    
+    if (validator.enableValidationLayers) {
+        createInfo.enabledLayerCount = validator.layerCount();
+        createInfo.ppEnabledLayerNames = validator.validationLayers.data();
+    } else {
+        createInfo.enabledLayerCount = 0;
+    }
+
+    if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create logical device");
     }
 }
