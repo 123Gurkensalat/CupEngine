@@ -32,10 +32,10 @@ find_program(GLSL_VALIDATOR glslangValidator HINTS /usr/bin /usr/local/bin $ENV{
 set(PROJECT_SHADER_DIR ${PROJECT_SOURCE_DIR}/src/graphics/shader)
 
 file(GLOB_RECURSE GLSL_SOURCE_FILES
-    "${PROJECT_SHADER_DIR}/src/*.frag"
-    "${PROJECT_SHADER_DIR}/src/*.vert"
-    "${PROJECT_SHADER_DIR}/src/*.comp"
-    )
+    "${PROJECT_SHADER_DIR}/*.frag"
+    "${PROJECT_SHADER_DIR}/*.vert"
+    "${PROJECT_SHADER_DIR}/*.comp"
+)
 
 foreach(GLSL ${GLSL_SOURCE_FILES})
   message(STATUS "BUILDING SHADER")
