@@ -7,6 +7,7 @@
 #include "graphics/window.hpp"
 
 // std
+#include <memory>
 #include <string>
 
 namespace cup{
@@ -15,9 +16,16 @@ namespace cup{
         App(const std::string &title) : 
             window(title), 
             device(window), 
-            swapChain(device, window),
-            pipeline(device, "../src/graphics/shader/bin/default.vert.spv", "../src/graphics/shader/bin/default.frag.spv")
-        {}
+            swapChain(device, window)
+        {
+            PipelineConfigInfo pipelineConfig{};
+            Pipeline::defaultPipelineConfigInfo(pipelineConfig);
+            pipeline = std::make_unique<Pipeline>(
+                    device, swapChain, 
+                    "../src/graphics/shader/bin/default.vert.spv", 
+                    "../src/graphics/shader/bin/default.frag.spv", 
+                    pipelineConfig);
+        }
 
         // starts the application
         void run();
@@ -26,6 +34,6 @@ namespace cup{
         Window window;
         Device device;
         SwapChain swapChain;
-        Pipeline pipeline;
+        std::unique_ptr<Pipeline> pipeline;
     };
 }

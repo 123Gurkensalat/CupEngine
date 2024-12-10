@@ -13,6 +13,7 @@
 using cup::Validator;
 
 uint32_t Validator::minMessageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
+//uint32_t Validator::minMessageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
 
 VkResult CreateDebugUtilsMessengerEXT(
         VkInstance instance, 

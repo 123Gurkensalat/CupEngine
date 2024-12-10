@@ -7,30 +7,22 @@ using cup::Pipeline;
 
 Pipeline::Pipeline(
         Device& device, 
-        const std::string& vertFilePath, 
-        const std::string& fragFilePath) : device(device)
-{
-    PipelineConfigInfo configInfo{};
-    defaultPipelineConfigInfo(configInfo);
-    createPipeline(device, vertFilePath, fragFilePath, configInfo);
-}
-
-Pipeline::Pipeline(
-        Device& device, 
+        SwapChain& swapChain,
         const std::string& vertFilePath, 
         const std::string& fragFilePath, 
-        const PipelineConfigInfo& configInfo) : device(device) 
+        const PipelineConfigInfo& configInfo) : device(device), swapChain(swapChain)
 {
-    createPipeline(device, vertFilePath, fragFilePath, configInfo);
+    createPipelineLayout();
+    createPipeline(vertFilePath, fragFilePath, configInfo);
 }
 
 Pipeline::~Pipeline() 
 {
+    vkDestroyPipeline(device.device(), pipeline, nullptr);
     vkDestroyPipelineLayout(device.device(), pipelineLayout, nullptr);
 }
 
 void Pipeline::createPipeline(
-        Device& device, 
         const std::string& vertFilePath, 
         const std::string& fragFilePath, 
         const PipelineConfigInfo& configInfo) 
@@ -64,7 +56,29 @@ void Pipeline::createPipeline(
     vertexInputInfo.vertexAttributeDescriptionCount = 0;
     vertexInputInfo.pVertexAttributeDescriptions = nullptr;    
     
-    createPipelineLayout();
+    VkGraphicsPipelineCreateInfo pipelineInfo{};
+    pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipelineInfo.stageCount = 2;
+    pipelineInfo.pStages = shaderStages;
+
+    pipelineInfo.pVertexInputState = &vertexInputInfo;
+    pipelineInfo.pInputAssemblyState = &configInfo.inputAssemblyInfo;
+    pipelineInfo.pViewportState = &configInfo.viewportInfo;
+    pipelineInfo.pRasterizationState = &configInfo.rasterizationInfo;
+    pipelineInfo.pMultisampleState = &configInfo.multisampleInfo;
+    pipelineInfo.pDepthStencilState = &configInfo.depthStencilInfo;
+    pipelineInfo.pColorBlendState = &configInfo.colorBlendInfo;
+    pipelineInfo.pDynamicState = &configInfo.dynamicStateInfo;
+
+    pipelineInfo.layout = pipelineLayout;
+    pipelineInfo.renderPass = swapChain.getRenderPass();
+    pipelineInfo.subpass = 0;
+    pipelineInfo.basePipelineIndex = -1;
+    pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+
+    if (vkCreateGraphicsPipelines(device.device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) != VK_SUCCESS) {
+        throw std::runtime_error("could not create graphics pipeline!");
+    }
 
     vkDestroyShaderModule(device.device(), fragShaderModule, nullptr);
     vkDestroyShaderModule(device.device(), vertShaderModule, nullptr);

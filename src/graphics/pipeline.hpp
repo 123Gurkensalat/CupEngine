@@ -1,6 +1,7 @@
 #pragma once
 
 #include "graphics/device.hpp"
+#include "graphics/swap_chain.hpp"
 #include <string>
 #include <vector>
 #include <vulkan/vulkan_core.h>
@@ -28,19 +29,17 @@ namespace cup
     public:
         Pipeline(
             Device& device,
-            const std::string& vertFilePath,
-            const std::string& fragFilePath);
-        
-        Pipeline(
-            Device& device,
+            SwapChain& swapChain,
             const std::string& vertFilePath,
             const std::string& fragFilePath,
             const PipelineConfigInfo& configInfo);
         
         ~Pipeline();
+
+        static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo);
+
     private:
         void createPipeline(
-            Device& device,
             const std::string& vertFilePath,
             const std::string& fragFilePath,
             const PipelineConfigInfo& configInfo);
@@ -48,9 +47,8 @@ namespace cup
         VkShaderModule createShaderModule(const std::vector<char>& code);
         void createPipelineLayout();
 
-        void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo);
-
         Device& device;
+        SwapChain& swapChain;
 
         VkShaderModule vertShaderModule;
         VkShaderModule fragShaderModule;

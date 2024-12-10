@@ -10,10 +10,14 @@ namespace cup
     public:
         SwapChain(Device& device, Window& window); 
         ~SwapChain();
+
+        VkRenderPass getRenderPass() { return renderPass; }
+
     private:
         void init();
         void createSwapChain();
         void createImageViews();
+        void createRenderPass();
 
         VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
         VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
@@ -25,9 +29,10 @@ namespace cup
         VkSwapchainKHR swapChain;
         std::vector<VkImage> images;
         std::vector<VkImageView> imageViews;
+        VkRenderPass renderPass;
 
-        VkFormat imageFormat_;
-        VkExtent2D extent_;
+        VkFormat swapChainImageFormat;
+        VkExtent2D swapChainExtent;
 
     };
 }
