@@ -18,6 +18,7 @@ namespace cup
         void createSwapChain();
         void createImageViews();
         void createRenderPass();
+        void createFramebuffers();
 
         VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
         VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
@@ -30,6 +31,7 @@ namespace cup
         std::vector<VkImage> images;
         std::vector<VkImageView> imageViews;
         VkRenderPass renderPass;
+        std::vector<VkFramebuffer> framebuffers;
 
         VkFormat swapChainImageFormat;
         VkExtent2D swapChainExtent;

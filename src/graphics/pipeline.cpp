@@ -5,15 +5,11 @@
 
 using cup::Pipeline;
 
-Pipeline::Pipeline(
-        Device& device, 
-        SwapChain& swapChain,
-        const std::string& vertFilePath, 
-        const std::string& fragFilePath, 
-        const PipelineConfigInfo& configInfo) : device(device), swapChain(swapChain)
+Pipeline::Pipeline(Device& device, SwapChain& swapChain, const PipelineConfigInfo& configInfo)
+    : device(device), swapChain(swapChain)
 {
     createPipelineLayout();
-    createPipeline(vertFilePath, fragFilePath, configInfo);
+    createPipeline(configInfo);
 }
 
 Pipeline::~Pipeline() 
@@ -22,13 +18,10 @@ Pipeline::~Pipeline()
     vkDestroyPipelineLayout(device.device(), pipelineLayout, nullptr);
 }
 
-void Pipeline::createPipeline(
-        const std::string& vertFilePath, 
-        const std::string& fragFilePath, 
-        const PipelineConfigInfo& configInfo) 
+void Pipeline::createPipeline(const PipelineConfigInfo& configInfo) 
 {
-    auto vertShaderCode = utils::readFile(vertFilePath);
-    auto fragShaderCode = utils::readFile(fragFilePath);
+    auto vertShaderCode = utils::readFile(configInfo.vertShaderFilePath);
+    auto fragShaderCode = utils::readFile(configInfo.fragShaderFilePath);
 
     vertShaderModule = createShaderModule(vertShaderCode);
     fragShaderModule = createShaderModule(fragShaderCode);

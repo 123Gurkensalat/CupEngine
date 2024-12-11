@@ -20,11 +20,9 @@ namespace cup{
         {
             PipelineConfigInfo pipelineConfig{};
             Pipeline::defaultPipelineConfigInfo(pipelineConfig);
-            pipeline = std::make_unique<Pipeline>(
-                    device, swapChain, 
-                    "../src/graphics/shader/bin/default.vert.spv", 
-                    "../src/graphics/shader/bin/default.frag.spv", 
-                    pipelineConfig);
+            pipelineConfig.vertShaderFilePath = "../src/graphics/shader/bin/default.vert.spv"; 
+            pipelineConfig.fragShaderFilePath = "../src/graphics/shader/bin/default.frag.spv"; 
+            pipeline = std::make_unique<Pipeline>(device, swapChain, pipelineConfig);
         }
 
         // starts the application
@@ -35,5 +33,7 @@ namespace cup{
         Device device;
         SwapChain swapChain;
         std::unique_ptr<Pipeline> pipeline;
+
+        VkCommandPool commandPool;
     };
 }

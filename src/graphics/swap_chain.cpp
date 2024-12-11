@@ -14,6 +14,10 @@ SwapChain::SwapChain(Device& device, Window& window) : device(device), window(wi
 
 SwapChain::~SwapChain() 
 {
+    for (auto framebuffer : framebuffers) {
+        vkDestroyFramebuffer(device.device(), framebuffer, nullptr);
+    }
+
     vkDestroyRenderPass(device.device(), renderPass, nullptr);
 
     for (auto imageView : imageViews) {
@@ -27,6 +31,7 @@ void SwapChain::init() {
     createSwapChain();
     createImageViews();
     createRenderPass();
+    createFramebuffers();
 }
 
 void SwapChain::createSwapChain() 
@@ -117,6 +122,30 @@ void SwapChain::createRenderPass()
 
     if (vkCreateRenderPass(device.device(), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
         throw std::runtime_error("failed to create render pass!");
+    }
+}
+
+void SwapChain::createFramebuffers() 
+{   
+    framebuffers.resize(imageViews.size());
+    
+    for (size_t i = 0; i < imageViews.size(); i++) {
+        std::vector<VkImageView> attachments = {
+            imageViews[i]
+        };
+
+        VkFramebufferCreateInfo framebufferInfo{};
+        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferInfo.renderPass = renderPass;
+        framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+        framebufferInfo.pAttachments = attachments.data();
+        framebufferInfo.width = swapChainExtent.width;
+        framebufferInfo.height = swapChainExtent.height;
+        framebufferInfo.layers = 1;
+
+        if (vkCreateFramebuffer(device.device(), &framebufferInfo, nullptr, &framebuffers[i]) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create framebuffer!");
+        }
     }
 }
 

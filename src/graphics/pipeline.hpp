@@ -11,6 +11,9 @@ namespace cup
         PipelineConfigInfo(const PipelineConfigInfo&) = delete;
         PipelineConfigInfo& operator=(const PipelineConfigInfo&) = delete;
 
+        std::string vertShaderFilePath;
+        std::string fragShaderFilePath;
+
         VkPipelineViewportStateCreateInfo viewportInfo;
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
         VkPipelineRasterizationStateCreateInfo rasterizationInfo;
@@ -27,22 +30,13 @@ namespace cup
     
     class Pipeline {
     public:
-        Pipeline(
-            Device& device,
-            SwapChain& swapChain,
-            const std::string& vertFilePath,
-            const std::string& fragFilePath,
-            const PipelineConfigInfo& configInfo);
-        
+        Pipeline(Device& device, SwapChain& swapChain, const PipelineConfigInfo& configInfo);
         ~Pipeline();
 
         static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo);
 
     private:
-        void createPipeline(
-            const std::string& vertFilePath,
-            const std::string& fragFilePath,
-            const PipelineConfigInfo& configInfo);
+        void createPipeline(const PipelineConfigInfo& configInfo);
 
         VkShaderModule createShaderModule(const std::vector<char>& code);
         void createPipelineLayout();

@@ -38,8 +38,9 @@ Device::~Device()
 
 void Device::createVkInstance() 
 {
-    if (!validator.checkValidationLayerSupport()) 
+    if (!validator.checkValidationLayerSupport()) {
         throw std::runtime_error("validation layers requested, but not available!");
+    }
 
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -55,8 +56,7 @@ void Device::createVkInstance()
     vkEnumerateInstanceExtensionProperties(nullptr, &availableExtensionsCount, availableExtensions.data());
 
     std::cout << "available extensions:\n";
-    for(const auto& extension : availableExtensions) 
-    {
+    for(const auto& extension : availableExtensions) {
         std::cout << '\t' << extension.extensionName << '\n';
     }
 
