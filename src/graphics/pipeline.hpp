@@ -35,6 +35,8 @@ namespace cup
 
         static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo);
 
+        VkPipeline getPipeline() { return pipeline; }
+
     private:
         void createPipeline(const PipelineConfigInfo& configInfo);
 

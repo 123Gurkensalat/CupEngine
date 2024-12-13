@@ -11,7 +11,12 @@ namespace cup
         SwapChain(Device& device, Window& window); 
         ~SwapChain();
 
-        VkRenderPass getRenderPass() { return renderPass; }
+        VkResult acquireNextImage(uint32_t* imageIndex);
+        VkResult submitCommandBuffer(const VkCommandBuffer commandBuffer, const uint32_t imageIndex);
+
+        const VkRenderPass getRenderPass() { return renderPass; }
+        const std::vector<VkFramebuffer>& getFrameBuffers() { return framebuffers; }
+        const VkExtent2D getExtent() { return swapChainExtent; }
 
     private:
         void init();
@@ -19,6 +24,7 @@ namespace cup
         void createImageViews();
         void createRenderPass();
         void createFramebuffers();
+        void createSyncObjects();
 
         VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
         VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
@@ -32,6 +38,10 @@ namespace cup
         std::vector<VkImageView> imageViews;
         VkRenderPass renderPass;
         std::vector<VkFramebuffer> framebuffers;
+        
+        VkSemaphore imageAvailableSemaphore;
+        VkSemaphore renderFinishedSemaphore;
+        VkFence inFlightFence;
 
         VkFormat swapChainImageFormat;
         VkExtent2D swapChainExtent;

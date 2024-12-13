@@ -1,5 +1,6 @@
 #include "pipeline.hpp"
 #include "utils/file_operations.h"
+#include <iostream>
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
 
@@ -33,14 +34,18 @@ void Pipeline::createPipeline(const PipelineConfigInfo& configInfo)
     shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
     shaderStages[0].module = vertShaderModule;
     shaderStages[0].pName = "main";
-    shaderStages[0].pSpecializationInfo = VK_NULL_HANDLE;
+    shaderStages[0].flags = 0;
+    shaderStages[0].pNext = nullptr;
+    shaderStages[0].pSpecializationInfo = nullptr;
 
     // fragment shader
     shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
     shaderStages[1].module = fragShaderModule;
     shaderStages[1].pName = "main";
-    shaderStages[1].pSpecializationInfo = VK_NULL_HANDLE;
+    shaderStages[1].flags = 0;
+    shaderStages[1].pNext = nullptr;
+    shaderStages[1].pSpecializationInfo = nullptr;
 
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -126,7 +131,7 @@ void Pipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo)
     configInfo.rasterizationInfo.polygonMode = VK_POLYGON_MODE_FILL;
     configInfo.rasterizationInfo.lineWidth = 1.0f;
     configInfo.rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-    configInfo.rasterizationInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    configInfo.rasterizationInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
     configInfo.rasterizationInfo.depthBiasEnable = VK_FALSE;
     configInfo.rasterizationInfo.depthBiasConstantFactor = 0.0f;
     configInfo.rasterizationInfo.depthBiasClamp = 0.0f;

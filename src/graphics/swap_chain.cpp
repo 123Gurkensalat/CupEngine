@@ -14,6 +14,10 @@ SwapChain::SwapChain(Device& device, Window& window) : device(device), window(wi
 
 SwapChain::~SwapChain() 
 {
+    vkDestroySemaphore(device.device(), imageAvailableSemaphore, nullptr);
+    vkDestroySemaphore(device.device(), renderFinishedSemaphore, nullptr);
+    vkDestroyFence(device.device(), inFlightFence, nullptr);
+
     for (auto framebuffer : framebuffers) {
         vkDestroyFramebuffer(device.device(), framebuffer, nullptr);
     }
@@ -32,6 +36,7 @@ void SwapChain::init() {
     createImageViews();
     createRenderPass();
     createFramebuffers();
+    createSyncObjects();
 }
 
 void SwapChain::createSwapChain() 
@@ -113,12 +118,22 @@ void SwapChain::createRenderPass()
     subpass.colorAttachmentCount = 1;
     subpass.pColorAttachments = &colorAttachmentRef;
 
+    VkSubpassDependency dependency{};
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.srcAccessMask = 0;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
     VkRenderPassCreateInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     renderPassInfo.attachmentCount = 1;
     renderPassInfo.pAttachments = &colorAttachment;
     renderPassInfo.subpassCount = 1;
     renderPassInfo.pSubpasses = &subpass;
+    renderPassInfo.dependencyCount = 1;
+    renderPassInfo.pDependencies = &dependency;
 
     if (vkCreateRenderPass(device.device(), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
         throw std::runtime_error("failed to create render pass!");
@@ -212,4 +227,82 @@ void SwapChain::createImageViews()
             throw std::runtime_error("failed to create image views!");
         }
     }
+}
+        
+void SwapChain::createSyncObjects() 
+{
+    VkSemaphoreCreateInfo semaphoreInfo{};
+    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    VkFenceCreateInfo fenceInfo{};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+    
+    if (vkCreateSemaphore(device.device(), &semaphoreInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS ||
+        vkCreateSemaphore(device.device(), &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS ||
+        vkCreateFence(device.device(), &fenceInfo, nullptr, &inFlightFence) != VK_SUCCESS) 
+    {
+        throw std::runtime_error("failed to create semaphores!");
+    }
+    
+}
+
+VkResult SwapChain::acquireNextImage(uint32_t* imageIndex) 
+{
+    vkWaitForFences(
+        device.device(), 
+        1, 
+        &inFlightFence, 
+        VK_TRUE, 
+        std::numeric_limits<uint64_t>::max());
+
+    vkResetFences(device.device(), 1, &inFlightFence);
+
+    VkResult result = vkAcquireNextImageKHR(
+        device.device(), 
+        swapChain, 
+        std::numeric_limits<uint64_t>::max(),
+        imageAvailableSemaphore,  // must be a not signaled semaphore
+        VK_NULL_HANDLE,
+        imageIndex);
+
+    return result;
+}
+
+VkResult SwapChain::submitCommandBuffer(const VkCommandBuffer commandBuffer, const uint32_t imageIndex) 
+{
+    std::vector<VkSemaphore> waitSemaphores = {imageAvailableSemaphore};
+    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+
+    std::vector<VkSemaphore> signalSemaphores = {renderFinishedSemaphore};
+
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size());
+    submitInfo.pWaitSemaphores = waitSemaphores.data();
+    submitInfo.pWaitDstStageMask = waitStages;
+    
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+
+    submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
+    submitInfo.pSignalSemaphores = signalSemaphores.data();
+
+    if (vkQueueSubmit(device.graphicsQueue(), 1, &submitInfo, inFlightFence) != VK_SUCCESS){
+        throw std::runtime_error("failed to submit draw command buffer!");
+    }
+
+    std::vector<VkSwapchainKHR> swapChains = {swapChain};
+
+    VkPresentInfoKHR presentInfo{};
+    presentInfo.sType =VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.waitSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
+    presentInfo.pWaitSemaphores = signalSemaphores.data();
+    presentInfo.swapchainCount = static_cast<uint32_t>(swapChains.size());
+    presentInfo.pSwapchains = swapChains.data();
+    presentInfo.pImageIndices = &imageIndex;
+    presentInfo.pResults = nullptr;
+
+    VkResult result = vkQueuePresentKHR(device.presentQueue(), &presentInfo);
+    return result;
 }

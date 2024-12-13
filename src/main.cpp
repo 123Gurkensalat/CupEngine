@@ -7,7 +7,7 @@
 #include <iostream>
 
 int main() {
-    cup::App app{"Test"};
+    cup::App app{};
 
     try {
         app.run();
