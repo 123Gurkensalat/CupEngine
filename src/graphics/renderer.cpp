@@ -22,13 +22,27 @@ Renderer::~Renderer()
 void Renderer::drawFrame()
 {
     uint32_t imageIndex;
-    swapChain.acquireNextImage(currentFrame, &imageIndex);
+    auto result = swapChain.acquireNextImage(currentFrame, &imageIndex);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        swapChain.recreateSwapChain();
+        return;
+    } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+        throw std::runtime_error("failed to acquire swap chain image!");
+    }
 
     vkResetCommandBuffer(commandBuffers[currentFrame], 0);
 
     recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
 
-    swapChain.submitCommandBuffer(currentFrame, commandBuffers[currentFrame], imageIndex);    
+    result = swapChain.submitCommandBuffer(currentFrame, commandBuffers[currentFrame], imageIndex);    
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || window.wasResized()) {
+        window.resetResizedFlag();
+        swapChain.recreateSwapChain();
+    } else if (result != VK_SUCCESS) {
+        throw std::runtime_error("failed to present swap chain image!");
+    }
 
     currentFrame = (currentFrame + 1) % SwapChain::MAX_FRAMES_IN_FLIGHT;
 }

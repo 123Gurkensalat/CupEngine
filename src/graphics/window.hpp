@@ -18,13 +18,18 @@ namespace cup
         void createSurface(VkInstance instance, VkSurfaceKHR* surface);
 
         inline bool shouldClose() { return glfwWindowShouldClose(window); }
+        inline bool wasResized() { return framebufferResized; }
+        inline void resetResizedFlag() { framebufferResized = false; }
         
         // extent in pixel
         VkExtent2D getExtent();
+
+        static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
         static constexpr uint32_t WIDTH = 800; 
         static constexpr uint32_t HEIGHT = 600; 
     private:
         GLFWwindow* window;
+        bool framebufferResized = false;
     };
 }

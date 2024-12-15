@@ -1,4 +1,5 @@
 #include "swap_chain.hpp"
+#include <GLFW/glfw3.h>
 #include <algorithm>
 #include <limits>
 #include <stdexcept>
@@ -14,17 +15,22 @@ SwapChain::SwapChain(Device& device, Window& window) : device(device), window(wi
 
 SwapChain::~SwapChain() 
 {
+    cleanupSwapChain();
+
+    vkDestroyRenderPass(device.device(), renderPass, nullptr);
+
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroySemaphore(device.device(), renderFinishedSemaphores[i], nullptr);
         vkDestroySemaphore(device.device(), imageAvailableSemaphores[i], nullptr);
         vkDestroyFence(device.device(), inFlightFences[i], nullptr);
     }
+}
 
+void SwapChain::cleanupSwapChain() 
+{
     for (auto framebuffer : framebuffers) {
         vkDestroyFramebuffer(device.device(), framebuffer, nullptr);
     }
-
-    vkDestroyRenderPass(device.device(), renderPass, nullptr);
 
     for (auto imageView : imageViews) {
         vkDestroyImageView(device.device(), imageView, nullptr);
@@ -33,12 +39,29 @@ SwapChain::~SwapChain()
     vkDestroySwapchainKHR(device.device(), swapChain, nullptr);
 }
 
-void SwapChain::init() {
+void SwapChain::init() 
+{
     createSwapChain();
     createImageViews();
     createRenderPass();
     createFramebuffers();
     createSyncObjects();
+}
+
+void SwapChain::recreateSwapChain() {
+    auto extent = window.getExtent();
+    while (extent.height == 0 || extent.width == 0) {
+        extent = window.getExtent();
+        glfwWaitEvents();
+    }
+
+    vkDeviceWaitIdle(device.device());
+
+    cleanupSwapChain();
+
+    createSwapChain();
+    createImageViews();
+    createFramebuffers();
 }
 
 void SwapChain::createSwapChain() 
@@ -264,8 +287,6 @@ VkResult SwapChain::acquireNextImage(const uint32_t currentFrame, uint32_t* imag
         VK_TRUE, 
         std::numeric_limits<uint64_t>::max());
 
-    vkResetFences(device.device(), 1, &inFlightFences[currentFrame]);
-
     VkResult result = vkAcquireNextImageKHR(
         device.device(), 
         swapChain, 
@@ -279,6 +300,8 @@ VkResult SwapChain::acquireNextImage(const uint32_t currentFrame, uint32_t* imag
 
 VkResult SwapChain::submitCommandBuffer(const uint32_t currentFrame, const VkCommandBuffer commandBuffer, const uint32_t imageIndex) 
 {
+    vkResetFences(device.device(), 1, &inFlightFences[currentFrame]);
+
     std::vector<VkSemaphore> waitSemaphores = {imageAvailableSemaphores[currentFrame]};
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 

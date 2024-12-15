@@ -22,6 +22,8 @@ namespace cup
         const std::vector<VkFramebuffer>& getFrameBuffers() { return framebuffers; }
         const VkExtent2D getExtent() { return swapChainExtent; }
 
+        void recreateSwapChain();
+
         static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
     private:
@@ -31,6 +33,7 @@ namespace cup
         void createRenderPass();
         void createFramebuffers();
         void createSyncObjects();
+        void cleanupSwapChain();
 
         VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
         VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
@@ -51,6 +54,5 @@ namespace cup
 
         VkFormat swapChainImageFormat;
         VkExtent2D swapChainExtent;
-
     };
 }
