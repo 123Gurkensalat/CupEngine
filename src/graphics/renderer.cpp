@@ -22,13 +22,15 @@ Renderer::~Renderer()
 void Renderer::drawFrame()
 {
     uint32_t imageIndex;
-    swapChain.acquireNextImage(&imageIndex);
+    swapChain.acquireNextImage(currentFrame, &imageIndex);
 
-    vkResetCommandBuffer(commandBuffer, 0);
+    vkResetCommandBuffer(commandBuffers[currentFrame], 0);
 
-    recordCommandBuffer(commandBuffer, imageIndex);
+    recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
 
-    swapChain.submitCommandBuffer(commandBuffer, imageIndex);    
+    swapChain.submitCommandBuffer(currentFrame, commandBuffers[currentFrame], imageIndex);    
+
+    currentFrame = (currentFrame + 1) % SwapChain::MAX_FRAMES_IN_FLIGHT;
 }
 
 void Renderer::createPipeline() 
@@ -56,13 +58,15 @@ void Renderer::createCommandPool()
 
 void Renderer::createCommandBuffer() 
 {
+    commandBuffers.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
+
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.commandPool = commandPool;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = 1;
+    allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
 
-    if (vkAllocateCommandBuffers(device.device(), &allocInfo, &commandBuffer) != VK_SUCCESS) {
+    if (vkAllocateCommandBuffers(device.device(), &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
         throw std::runtime_error("could not allocate command buffers!");
     }
 }

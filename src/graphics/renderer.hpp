@@ -5,6 +5,7 @@
 #include "graphics/swap_chain.hpp"
 #include "graphics/window.hpp"
 #include <memory>
+#include <vector>
 #include <vulkan/vulkan_core.h>
 namespace cup 
 {
@@ -27,6 +28,7 @@ namespace cup
         std::unique_ptr<Pipeline> pipeline;
 
         VkCommandPool commandPool;
-        VkCommandBuffer commandBuffer;
+        std::vector<VkCommandBuffer> commandBuffers;
+        uint32_t currentFrame = 0; 
     };
 }

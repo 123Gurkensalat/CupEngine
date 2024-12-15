@@ -2,6 +2,7 @@
 
 #include "graphics/device.hpp"
 #include "graphics/window.hpp"
+#include <cstdint>
 #include <vector>
 #include <vulkan/vulkan_core.h>
 namespace cup 
@@ -11,12 +12,17 @@ namespace cup
         SwapChain(Device& device, Window& window); 
         ~SwapChain();
 
-        VkResult acquireNextImage(uint32_t* imageIndex);
-        VkResult submitCommandBuffer(const VkCommandBuffer commandBuffer, const uint32_t imageIndex);
+        VkResult acquireNextImage(const uint32_t currentFrame, uint32_t* imageIndex);
+        VkResult submitCommandBuffer(
+            const uint32_t currentFrame, 
+            const VkCommandBuffer commandBuffer, 
+            const uint32_t imageIndex);
 
         const VkRenderPass getRenderPass() { return renderPass; }
         const std::vector<VkFramebuffer>& getFrameBuffers() { return framebuffers; }
         const VkExtent2D getExtent() { return swapChainExtent; }
+
+        static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
     private:
         void init();
@@ -39,9 +45,9 @@ namespace cup
         VkRenderPass renderPass;
         std::vector<VkFramebuffer> framebuffers;
         
-        VkSemaphore imageAvailableSemaphore;
-        VkSemaphore renderFinishedSemaphore;
-        VkFence inFlightFence;
+        std::vector<VkSemaphore> imageAvailableSemaphores;
+        std::vector<VkSemaphore> renderFinishedSemaphores;
+        std::vector<VkFence> inFlightFences;
 
         VkFormat swapChainImageFormat;
         VkExtent2D swapChainExtent;
