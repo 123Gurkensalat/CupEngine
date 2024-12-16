@@ -1,7 +1,7 @@
 #pragma once
 
-#include "graphics/validator.hpp"
-#include "graphics/window.hpp"
+#include "validator.hpp"
+#include "window.hpp"
 #include <cstdint>
 #include <optional>
 #include <set>
@@ -12,6 +12,16 @@ namespace cup
     {
         std::optional<uint32_t> graphicsFamily;
         std::optional<uint32_t> presentFamily; 
+
+        inline uint32_t* data() 
+        {
+            static uint32_t arr[] = {
+                graphicsFamily.value(),
+                presentFamily.value()
+            };
+
+            return arr;
+        }
 
         inline bool isComplete() 
         {

@@ -1,10 +1,11 @@
 #pragma once
 
-#include "graphics/device.hpp"
-#include "graphics/swap_chain.hpp"
+#include "device.hpp"
+#include "swap_chain.hpp"
 #include <string>
 #include <vector>
 #include <vulkan/vulkan_core.h>
+
 namespace cup 
 {     
     struct PipelineConfigInfo {
@@ -30,18 +31,18 @@ namespace cup
     
     class Pipeline {
     public:
-        Pipeline(Device& device, SwapChain& swapChain, const PipelineConfigInfo& configInfo);
+        Pipeline(Device& device, SwapChain& swapChain, PipelineConfigInfo& configInfo);
         ~Pipeline();
 
         static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo);
 
-        VkPipeline getPipeline() { return pipeline; }
+        inline VkPipeline pipeline() { return pipeline_; }
+        inline VkPipelineLayout pipelineLayout() { return pipelineLayout_; }
 
     private:
-        void createPipeline(const PipelineConfigInfo& configInfo);
-
-        VkShaderModule createShaderModule(const std::vector<char>& code);
         void createPipelineLayout();
+        void createPipeline(const PipelineConfigInfo& configInfo);
+        VkShaderModule createShaderModule(const std::vector<char>& code);
 
         Device& device;
         SwapChain& swapChain;
@@ -49,7 +50,7 @@ namespace cup
         VkShaderModule vertShaderModule;
         VkShaderModule fragShaderModule;
 
-        VkPipelineLayout pipelineLayout;
-        VkPipeline pipeline;
+        VkPipelineLayout pipelineLayout_;
+        VkPipeline pipeline_;
     };
 }

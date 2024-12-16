@@ -1,10 +1,10 @@
 #include "validator.hpp"
-#include <stdexcept>
-#include <vulkan/vulkan_core.h>
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+// std
+#include <stdexcept>
 #include <vector>
 #include <cstdint>
 #include <cstring>
@@ -32,29 +32,34 @@ VkResult CreateDebugUtilsMessengerEXT(
 void DestroyDebugUtilsMessengerEXT(
         VkInstance instance, 
         VkDebugUtilsMessengerEXT debugMessenger, 
-        const VkAllocationCallbacks* pAllocator) {
+        const VkAllocationCallbacks* pAllocator) 
+{
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
     if (func != nullptr) {
         func(instance, debugMessenger, pAllocator);
     }
 }
 
-void Validator::setupDebugMessenger(VkInstance instance) {
+void Validator::setupDebugMessenger(VkInstance instance) 
+{
     if (!enableValidationLayers) return;
 
-    auto createInfo = getDebugMessengerCreateInfo();
+    auto createInfo = getCreateInfo();
 
-    if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
+    if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
         throw std::runtime_error("failed to set up debug messenger!");
+    }
 }
 
-void Validator::cleanUpDebugMessenger(VkInstance instance) {
+void Validator::cleanUpDebugMessenger(VkInstance instance) 
+{
     if(!enableValidationLayers) return;
 
     DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 }
 
-VkDebugUtilsMessengerCreateInfoEXT Validator::getDebugMessengerCreateInfo() {
+VkDebugUtilsMessengerCreateInfoEXT Validator::getCreateInfo() 
+{
     VkDebugUtilsMessengerCreateInfoEXT createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
     createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
@@ -70,8 +75,7 @@ std::vector<const char*> Validator::getRequiredExtensions()
 
     std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
-    if (enableValidationLayers) 
-    {
+    if (enableValidationLayers) {
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
 
@@ -89,14 +93,11 @@ bool Validator::checkValidationLayerSupport()
     std::vector<VkLayerProperties> availableLayers(layerCount);
     vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-    for (const char* layername : validationLayers)
-    {
+    for (const char* layername : validationLayers){
         bool layerFound = false;
 
-        for (const auto& layerProperties : availableLayers)
-        {
-            if (strcmp(layername, layerProperties.layerName) == 0) 
-            {
+        for (const auto& layerProperties : availableLayers) {
+            if (strcmp(layername, layerProperties.layerName) == 0) {
                 layerFound = true;
                 break;
             }
@@ -115,8 +116,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL Validator::debugCallback(
         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
         void* pUserData) 
 {
-    if (messageSeverity >= minMessageSeverity) 
-    {
+    if (messageSeverity >= minMessageSeverity) {
         std::cerr << "validation layer: " << pCallbackData->pMessage << '\n';
     }
 

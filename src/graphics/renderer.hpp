@@ -1,18 +1,22 @@
 #pragma once
 
-#include "graphics/device.hpp"
-#include "graphics/pipeline.hpp"
-#include "graphics/swap_chain.hpp"
-#include "graphics/window.hpp"
+#include "device.hpp"
+#include "pipeline.hpp"
+#include "swap_chain.hpp"
+#include "window.hpp"
 #include <memory>
 #include <vector>
 #include <vulkan/vulkan_core.h>
+
 namespace cup 
 {
     class Renderer {
     public:
         Renderer(Device& device, Window& window);
         ~Renderer();
+
+        Renderer(const Renderer&) = delete;
+        Renderer& operator=(const Renderer&) = delete;
 
         void drawFrame();
 

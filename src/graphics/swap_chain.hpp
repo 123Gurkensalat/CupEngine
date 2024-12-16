@@ -12,15 +12,12 @@ namespace cup
         SwapChain(Device& device, Window& window); 
         ~SwapChain();
 
-        VkResult acquireNextImage(const uint32_t currentFrame, uint32_t* imageIndex);
-        VkResult submitCommandBuffer(
-            const uint32_t currentFrame, 
-            const VkCommandBuffer commandBuffer, 
-            const uint32_t imageIndex);
+        VkResult acquireNextImage(uint32_t currentFrame, uint32_t* imageIndex);
+        VkResult submitCommandBuffer(uint32_t currentFrame, VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
-        const VkRenderPass getRenderPass() { return renderPass; }
-        const std::vector<VkFramebuffer>& getFrameBuffers() { return framebuffers; }
-        const VkExtent2D getExtent() { return swapChainExtent; }
+        const VkRenderPass renderPass() { return renderPass_; }
+        const std::vector<VkFramebuffer>& framebuffers() { return framebuffers_; }
+        const VkExtent2D extent() { return extent_; }
 
         void recreateSwapChain();
 
@@ -35,9 +32,9 @@ namespace cup
         void createSyncObjects();
         void cleanupSwapChain();
 
-        VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-        VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-        VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+        VkSurfaceFormatKHR chooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+        VkPresentModeKHR choosePresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+        VkExtent2D chooseExtent(const VkSurfaceCapabilitiesKHR& capabilities);
        
         Device& device;
         Window& window;
@@ -45,14 +42,15 @@ namespace cup
         VkSwapchainKHR swapChain;
         std::vector<VkImage> images;
         std::vector<VkImageView> imageViews;
-        VkRenderPass renderPass;
-        std::vector<VkFramebuffer> framebuffers;
-        
+
+        VkRenderPass renderPass_;
+        std::vector<VkFramebuffer> framebuffers_;
+
+        VkFormat imageFormat_;
+        VkExtent2D extent_;
+
         std::vector<VkSemaphore> imageAvailableSemaphores;
         std::vector<VkSemaphore> renderFinishedSemaphores;
         std::vector<VkFence> inFlightFences;
-
-        VkFormat swapChainImageFormat;
-        VkExtent2D swapChainExtent;
     };
 }

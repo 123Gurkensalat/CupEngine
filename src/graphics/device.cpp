@@ -62,24 +62,24 @@ void Device::createVkInstance()
 
     auto extensions = validator.getRequiredExtensions();
 
-    auto debugCreateInfo = validator.getDebugMessengerCreateInfo();
-    VkInstanceCreateInfo createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    createInfo.pApplicationInfo = &appInfo;
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-    createInfo.ppEnabledExtensionNames = extensions.data();
-    if(validator.enableValidationLayers) 
-    {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(validator.validationLayers.size());
-        createInfo.ppEnabledLayerNames = validator.validationLayers.data();
+    auto debugInfo = validator.getCreateInfo();
 
-        createInfo.pNext = &debugCreateInfo;
+    VkInstanceCreateInfo instanceInfo{};
+    instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    instanceInfo.pApplicationInfo = &appInfo;
+    instanceInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+    instanceInfo.ppEnabledExtensionNames = extensions.data();
+    
+    if(validator.enableValidationLayers) {
+        instanceInfo.enabledLayerCount = static_cast<uint32_t>(validator.validationLayers.size());
+        instanceInfo.ppEnabledLayerNames = validator.validationLayers.data();
+
+        instanceInfo.pNext = &debugInfo;
     } else {
-        createInfo.enabledLayerCount = 0;
+        instanceInfo.enabledLayerCount = 0;
     }
 
-    if (vkCreateInstance(&createInfo, nullptr, &instance_) != VK_SUCCESS) 
-    {
+    if (vkCreateInstance(&instanceInfo, nullptr, &instance_) != VK_SUCCESS) {
         throw std::runtime_error("failed to create instance!");
     }
 }
@@ -89,8 +89,9 @@ void Device::pickPhysicalDevice()
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance_, &deviceCount, nullptr);
 
-    if (deviceCount == 0)
+    if (deviceCount == 0) {
         throw std::runtime_error("failed to find GPUs with Vulkan support!");
+    }
 
     std::vector<VkPhysicalDevice> devices(deviceCount);
     vkEnumeratePhysicalDevices(instance_, &deviceCount, devices.data());
@@ -98,15 +99,13 @@ void Device::pickPhysicalDevice()
     std::multimap<uint32_t, VkPhysicalDevice> candidates{};
 
     // rate devices
-    for (const auto& device : devices) 
-    {
+    for (const auto& device : devices) {
         uint32_t score = ratePhysicalDeviceSuitability(device);
         candidates.insert(std::make_pair(score, device));
     }
 
     // select device
-    if (candidates.rbegin()->first > 0) 
-    {
+    if (candidates.rbegin()->first > 0) {
         physicalDevice_ = candidates.rbegin()->second;
     } else {
         throw std::runtime_error("failed to find a suitable GPU");
@@ -225,24 +224,24 @@ SwapChainSupportDetails Device::querySwapChainSupport(VkPhysicalDevice physicalD
 void Device::createLogicalDevice() {
     QueueFamilyIndices indices = findQueueFamilies(physicalDevice_); 
 
-    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    std::vector<VkDeviceQueueCreateInfo> queueInfos;
     
     float queuePriority = 1.0f; // ranges from 0 to 1. Where 1 has highest priority
     for (uint32_t queueFamily : indices.uniqueQueueFamilies()) {
-        VkDeviceQueueCreateInfo queueCreateInfo{};
-        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex = queueFamily;
-        queueCreateInfo.queueCount = 1;
-        queueCreateInfo.pQueuePriorities = &queuePriority;
-        queueCreateInfos.push_back(queueCreateInfo);
+        VkDeviceQueueCreateInfo queueInfo{};
+        queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueInfo.queueFamilyIndex = queueFamily;
+        queueInfo.queueCount = 1;
+        queueInfo.pQueuePriorities = &queuePriority;
+        queueInfos.push_back(queueInfo);
     }
     
     VkPhysicalDeviceFeatures deviceFeatures{};
 
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
-    createInfo.pQueueCreateInfos = queueCreateInfos.data();
+    createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueInfos.size());
+    createInfo.pQueueCreateInfos = queueInfos.data();
 
     createInfo.pEnabledFeatures = &deviceFeatures;
     

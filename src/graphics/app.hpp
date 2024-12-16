@@ -1,9 +1,9 @@
 #pragma once
 
 // glfw
-#include "graphics/device.hpp"
-#include "graphics/renderer.hpp"
-#include "graphics/window.hpp"
+#include "device.hpp"
+#include "renderer.hpp"
+#include "window.hpp"
 
 // std
 #include <string>
@@ -11,9 +11,11 @@
 namespace cup{
     class App{
     public: 
-        App();
+        App() = default;
+        App(const App&) = delete;
+        App& operator=(const App&) = delete;
 
-        // starts the application
+        /// starts the application
         void run();
 
     private:

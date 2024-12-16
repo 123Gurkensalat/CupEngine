@@ -7,14 +7,9 @@
 
 using cup::App;
 
-App::App()
-{
-}
-
 void App::run() 
 {
-    while(!window.shouldClose()) 
-    {
+    while(!window.shouldClose()) {
         glfwPollEvents();
         renderer.drawFrame();
     }

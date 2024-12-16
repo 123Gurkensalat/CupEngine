@@ -1,6 +1,5 @@
 #pragma once
 
-#include <vulkan/vulkan_core.h>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <string>
@@ -24,11 +23,12 @@ namespace cup
         // extent in pixel
         VkExtent2D getExtent();
 
-        static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
-
         static constexpr uint32_t WIDTH = 800; 
         static constexpr uint32_t HEIGHT = 600; 
+
     private:
+        static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+
         GLFWwindow* window;
         bool framebufferResized = false;
     };

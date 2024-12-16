@@ -1,12 +1,11 @@
 #include "pipeline.hpp"
 #include "utils/file_operations.h"
-#include <iostream>
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
 
 using cup::Pipeline;
 
-Pipeline::Pipeline(Device& device, SwapChain& swapChain, const PipelineConfigInfo& configInfo)
+Pipeline::Pipeline(Device& device, SwapChain& swapChain, PipelineConfigInfo& configInfo)
     : device(device), swapChain(swapChain)
 {
     createPipelineLayout();
@@ -15,8 +14,8 @@ Pipeline::Pipeline(Device& device, SwapChain& swapChain, const PipelineConfigInf
 
 Pipeline::~Pipeline() 
 {
-    vkDestroyPipeline(device.device(), pipeline, nullptr);
-    vkDestroyPipelineLayout(device.device(), pipelineLayout, nullptr);
+    vkDestroyPipeline(device.device(), pipeline_, nullptr);
+    vkDestroyPipelineLayout(device.device(), pipelineLayout_, nullptr);
 }
 
 void Pipeline::createPipeline(const PipelineConfigInfo& configInfo) 
@@ -68,13 +67,13 @@ void Pipeline::createPipeline(const PipelineConfigInfo& configInfo)
     pipelineInfo.pColorBlendState = &configInfo.colorBlendInfo;
     pipelineInfo.pDynamicState = &configInfo.dynamicStateInfo;
 
-    pipelineInfo.layout = pipelineLayout;
-    pipelineInfo.renderPass = swapChain.getRenderPass();
+    pipelineInfo.layout = pipelineLayout_;
+    pipelineInfo.renderPass = swapChain.renderPass();
     pipelineInfo.subpass = 0;
     pipelineInfo.basePipelineIndex = -1;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-    if (vkCreateGraphicsPipelines(device.device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) != VK_SUCCESS) {
+    if (vkCreateGraphicsPipelines(device.device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline_) != VK_SUCCESS) {
         throw std::runtime_error("could not create graphics pipeline!");
     }
 
@@ -106,7 +105,7 @@ void Pipeline::createPipelineLayout()
     pipelineLayoutInfo.pushConstantRangeCount = 0;
     pipelineLayoutInfo.pPushConstantRanges = VK_NULL_HANDLE;
 
-    if (vkCreatePipelineLayout(device.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+    if (vkCreatePipelineLayout(device.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout_) != VK_SUCCESS) {
         throw std::runtime_error("could not create pipeline layout!");
     }
 }
