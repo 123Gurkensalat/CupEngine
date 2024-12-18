@@ -13,8 +13,7 @@ namespace cup
         std::optional<uint32_t> graphicsFamily;
         std::optional<uint32_t> presentFamily; 
 
-        inline uint32_t* data() 
-        {
+        inline uint32_t* data() {
             static uint32_t arr[] = {
                 graphicsFamily.value(),
                 presentFamily.value()
@@ -23,13 +22,11 @@ namespace cup
             return arr;
         }
 
-        inline bool isComplete() 
-        {
+        inline bool isComplete() {
             return graphicsFamily.has_value() && presentFamily.has_value();
         }
 
-        inline std::set<uint32_t> uniqueQueueFamilies() 
-        {
+        inline std::set<uint32_t> uniqueQueueFamilies() {
             return {graphicsFamily.value(), presentFamily.value()};
         }
     };
@@ -51,6 +48,13 @@ namespace cup
         Device(Device &&) = delete;
         Device &operator=(Device &&) = delete;
 
+        void createBuffer(
+            VkDeviceSize size, 
+            VkBufferUsageFlags usage, 
+            VkMemoryPropertyFlags properties, 
+            VkBuffer* buffer, 
+            VkDeviceMemory* bufferMemory);        
+
         inline VkDevice device() { return device_; }
         inline VkSurfaceKHR surface() { return surface_; }
         inline VkQueue graphicsQueue() {return graphicsQueue_;}
@@ -69,6 +73,8 @@ namespace cup
         bool checkDeviceExtensionSupport(VkPhysicalDevice physicalDevice);
 
         SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice physicalDevice);
+
+        uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
         Window& window;
         Validator validator{};

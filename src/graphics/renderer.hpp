@@ -1,6 +1,7 @@
 #pragma once
 
 #include "device.hpp"
+#include "graphics/model.hpp"
 #include "pipeline.hpp"
 #include "swap_chain.hpp"
 #include "window.hpp"
@@ -34,5 +35,8 @@ namespace cup
         VkCommandPool commandPool;
         std::vector<VkCommandBuffer> commandBuffers;
         uint32_t currentFrame = 0; 
+
+        // temp
+        Model model;
     };
 }

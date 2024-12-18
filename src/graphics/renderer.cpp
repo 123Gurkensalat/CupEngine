@@ -7,7 +7,7 @@
 
 using cup::Renderer;
 
-Renderer::Renderer(cup::Device& device, cup::Window& window) : device(device), window(window) 
+Renderer::Renderer(cup::Device& device, cup::Window& window) : device(device), window(window), model(device) 
 {
     createPipeline();
     createCommandPool();
@@ -112,6 +112,8 @@ void Renderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t image
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipeline());
 
+    model.bind(commandBuffer);
+
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
@@ -126,7 +128,7 @@ void Renderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t image
     scissor.offset = {0, 0};
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+    model.draw(commandBuffer);
 
     vkCmdEndRenderPass(commandBuffer);
 
