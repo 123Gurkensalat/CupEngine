@@ -2,11 +2,8 @@
 
 // glfw
 #include "device.hpp"
+#include "window_manager.hpp"
 #include "renderer.hpp"
-#include "window.hpp"
-
-// std
-#include <string>
 
 namespace cup{
     class App{
@@ -19,8 +16,8 @@ namespace cup{
         void run();
 
     private:
-        Window window{"CupEngine"};
-        Device device{window};
-        Renderer renderer{device, window};
+        WindowManager windowManager{};
+        Device device{windowManager.mainWindow()};
+        Renderer renderer{device, windowManager.mainWindow()};
     };
 }

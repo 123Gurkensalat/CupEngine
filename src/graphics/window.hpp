@@ -13,6 +13,7 @@ namespace cup
         
         Window(const Window&) = delete;
         Window& operator=(const Window&) = delete;
+        Window(Window&&) = default;
 
         void createSurface(VkInstance instance, VkSurfaceKHR* surface);
 
