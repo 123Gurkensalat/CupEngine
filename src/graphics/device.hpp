@@ -1,5 +1,6 @@
 #pragma once
 
+#include "graphics/instance.hpp"
 #include "validator.hpp"
 #include "window.hpp"
 #include <cstdint>
@@ -13,7 +14,7 @@ namespace cup
         std::optional<uint32_t> graphicsFamily;
         std::optional<uint32_t> presentFamily; 
 
-        inline uint32_t* data() {
+        inline uint32_t* data() const {
             static uint32_t arr[] = {
                 graphicsFamily.value(),
                 presentFamily.value()
@@ -22,11 +23,11 @@ namespace cup
             return arr;
         }
 
-        inline bool isComplete() {
+        inline bool isComplete() const {
             return graphicsFamily.has_value() && presentFamily.has_value();
         }
 
-        inline std::set<uint32_t> uniqueQueueFamilies() {
+        inline std::set<uint32_t> uniqueQueueFamilies() const {
             return {graphicsFamily.value(), presentFamily.value()};
         }
     };
@@ -40,13 +41,13 @@ namespace cup
 
     class Device {
     public: 
-        Device(Window& window);
+        Device(Instance& instance, Window& window);
         ~Device();
 
-        Device(const Device &) = delete;
-        Device& operator=(const Device &) = delete;
-        Device(Device &&) = delete;
-        Device &operator=(Device &&) = delete;
+        Device(const Device&) = delete;
+        Device& operator=(const Device&) = delete;
+        Device(Device&&) = delete;
+        Device& operator=(Device&&) = delete;
 
         void createBuffer(
             VkDeviceSize size, 
@@ -56,7 +57,6 @@ namespace cup
             VkDeviceMemory* bufferMemory);        
 
         inline VkDevice device() { return device_; }
-        inline VkSurfaceKHR surface() { return surface_; }
         inline VkQueue graphicsQueue() {return graphicsQueue_;}
         inline VkQueue presentQueue() { return presentQueue_; }
 
@@ -64,7 +64,6 @@ namespace cup
         inline SwapChainSupportDetails getSwapChainSupport() { return querySwapChainSupport(physicalDevice_); }
 
     private:
-        void createVkInstance();
         void pickPhysicalDevice();
         void createLogicalDevice();
 
@@ -76,13 +75,11 @@ namespace cup
 
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
+        Instance& instance;
         Window& window;
-        Validator validator{};
 
-        VkInstance instance_;
         VkPhysicalDevice physicalDevice_ = VK_NULL_HANDLE;
         VkDevice device_;
-        VkSurfaceKHR surface_;
         VkQueue graphicsQueue_;
         VkQueue presentQueue_;
     };

@@ -1,9 +1,8 @@
 #pragma once
 
 // glfw
-#include "device.hpp"
+#include "instance.hpp"
 #include "window_manager.hpp"
-#include "renderer.hpp"
 
 namespace cup{
     class App{
@@ -16,8 +15,7 @@ namespace cup{
         void run();
 
     private:
-        WindowManager windowManager{};
-        Device device{windowManager.mainWindow()};
-        Renderer renderer{device, windowManager.mainWindow()};
+        Instance instance{};
+        WindowManager windowManager{instance};
     };
 }

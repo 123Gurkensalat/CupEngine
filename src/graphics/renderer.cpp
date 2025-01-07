@@ -7,7 +7,7 @@
 
 using cup::Renderer;
 
-Renderer::Renderer(cup::Device& device, cup::Window& window) : device(device), window(window), model(device) 
+Renderer::Renderer(cup::Device& device, cup::Window& window) : device(device), window(window), swapChain(device, window), model(device)
 {
     createPipeline();
     createCommandPool();

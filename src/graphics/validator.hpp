@@ -15,15 +15,15 @@ namespace cup {
         void setupDebugMessenger(VkInstance instance);
         void cleanUpDebugMessenger(VkInstance instance);
 
-        VkDebugUtilsMessengerCreateInfoEXT getCreateInfo();
+        VkDebugUtilsMessengerCreateInfoEXT getCreateInfo() const;
 
-        std::vector<const char*> getRequiredExtensions();
+        std::vector<const char*> getRequiredExtensions() const;
 
         /// checks if required validation Layers are compatible
         /// returns if successfull
-        bool checkValidationLayerSupport();
+        bool checkValidationLayerSupport() const;
 
-        inline uint32_t layerCount() { return static_cast<uint32_t>(validationLayers.size()); }
+        inline uint32_t layerCount() const { return static_cast<uint32_t>(validationLayers.size()); }
 
         /// defaults to warning messages 
         static uint32_t minMessageSeverity;

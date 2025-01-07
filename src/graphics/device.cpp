@@ -11,19 +11,14 @@
 
 #include <vulkan/vulkan_core.h>
 
-using cup::Device;
-using cup::QueueFamilyIndices;
-using cup::SwapChainSupportDetails;
+using namespace cup;
 
 const std::vector<const char*> deviceExtensions = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
-Device::Device(cup::Window& window) : window(window) 
+Device::Device(Instance& instance, Window& window) : instance(instance), window(window) 
 {
-    createVkInstance();
-    validator.setupDebugMessenger(instance_);
-    window.createSurface(instance_, &surface_);
     pickPhysicalDevice();
     createLogicalDevice();
 }
@@ -31,70 +26,19 @@ Device::Device(cup::Window& window) : window(window)
 Device::~Device() 
 {
     vkDestroyDevice(device_, nullptr);
-    validator.cleanUpDebugMessenger(instance_);
-    vkDestroySurfaceKHR(instance_, surface_, nullptr);
-    vkDestroyInstance(instance_, nullptr);
-}
-
-void Device::createVkInstance() 
-{
-    if (!validator.checkValidationLayerSupport()) {
-        throw std::runtime_error("validation layers requested, but not available!");
-    }
-
-    VkApplicationInfo appInfo{};
-    appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = "ApplicationName";
-    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.pEngineName = "CupEngine";
-    appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_3;
-
-    uint32_t availableExtensionsCount = 0;
-    vkEnumerateInstanceExtensionProperties(nullptr, &availableExtensionsCount, nullptr);
-    std::vector<VkExtensionProperties> availableExtensions{availableExtensionsCount};
-    vkEnumerateInstanceExtensionProperties(nullptr, &availableExtensionsCount, availableExtensions.data());
-
-    std::cout << "available extensions:\n";
-    for(const auto& extension : availableExtensions) {
-        std::cout << '\t' << extension.extensionName << '\n';
-    }
-
-    auto extensions = validator.getRequiredExtensions();
-
-    auto debugInfo = validator.getCreateInfo();
-
-    VkInstanceCreateInfo instanceInfo{};
-    instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    instanceInfo.pApplicationInfo = &appInfo;
-    instanceInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-    instanceInfo.ppEnabledExtensionNames = extensions.data();
-    
-    if(validator.enableValidationLayers) {
-        instanceInfo.enabledLayerCount = static_cast<uint32_t>(validator.validationLayers.size());
-        instanceInfo.ppEnabledLayerNames = validator.validationLayers.data();
-
-        instanceInfo.pNext = &debugInfo;
-    } else {
-        instanceInfo.enabledLayerCount = 0;
-    }
-
-    if (vkCreateInstance(&instanceInfo, nullptr, &instance_) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create instance!");
-    }
 }
 
 void Device::pickPhysicalDevice() 
 {
     uint32_t deviceCount = 0;
-    vkEnumeratePhysicalDevices(instance_, &deviceCount, nullptr);
+    vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 
     if (deviceCount == 0) {
         throw std::runtime_error("failed to find GPUs with Vulkan support!");
     }
 
     std::vector<VkPhysicalDevice> devices(deviceCount);
-    vkEnumeratePhysicalDevices(instance_, &deviceCount, devices.data());
+    vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
     std::multimap<uint32_t, VkPhysicalDevice> candidates{};
 
@@ -165,7 +109,7 @@ QueueFamilyIndices Device::findQueueFamilies(VkPhysicalDevice physicalDevice)
         }
 
         VkBool32 presentSupport = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface_, &presentSupport);
+        vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, window.surface(), &presentSupport);
 
         if (presentSupport) {
             indices.presentFamily = i;
@@ -200,22 +144,22 @@ SwapChainSupportDetails Device::querySwapChainSupport(VkPhysicalDevice physicalD
 {
     SwapChainSupportDetails details;
 
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface_, &details.capabilities);
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, window.surface(), &details.capabilities);
 
     uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface_, &formatCount, nullptr);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, window.surface(), &formatCount, nullptr);
 
     if (formatCount != 0) {
         details.formats.resize(formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface_, &formatCount, details.formats.data());
+        vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, window.surface(), &formatCount, details.formats.data());
     }
 
     uint32_t presentModeCount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface_, &presentModeCount, nullptr);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, window.surface(), &presentModeCount, nullptr);
 
     if (presentModeCount != 0) {
         details.presentModes.resize(presentModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface_, &presentModeCount, details.presentModes.data());
+        vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, window.surface(), &presentModeCount, details.presentModes.data());
     }
 
     return details;
@@ -248,9 +192,9 @@ void Device::createLogicalDevice() {
     createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
-    if (validator.enableValidationLayers) {
-        createInfo.enabledLayerCount = validator.layerCount();
-        createInfo.ppEnabledLayerNames = validator.validationLayers.data();
+    if (instance.validator().enableValidationLayers) {
+        createInfo.enabledLayerCount = instance.validator().layerCount();
+        createInfo.ppEnabledLayerNames = instance.validator().validationLayers.data();
     } else {
         createInfo.enabledLayerCount = 0;
     }
@@ -310,8 +254,3 @@ uint32_t Device::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags prope
 
     throw std::runtime_error("failed to find suitable memory type!");
 }
-
-
-
-
-

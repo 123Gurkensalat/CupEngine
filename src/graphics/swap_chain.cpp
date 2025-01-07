@@ -50,9 +50,9 @@ void SwapChain::init()
 
 void SwapChain::recreateSwapChain() {
     // handle minimization
-    auto extent = window.getExtent();
+    auto extent = window.extent();
     while (extent.height == 0 || extent.width == 0) {
-        extent = window.getExtent();
+        extent = window.extent();
         glfwWaitEvents();
     }
 
@@ -83,7 +83,7 @@ void SwapChain::createSwapChain()
 
     VkSwapchainCreateInfoKHR createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    createInfo.surface = device.surface();
+    createInfo.surface = window.surface();
     createInfo.minImageCount = imageCount;
     createInfo.imageFormat = imageFormat_;
     createInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -216,7 +216,7 @@ VkExtent2D SwapChain::chooseExtent(const VkSurfaceCapabilitiesKHR& capabilities)
     if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         return capabilities.currentExtent;
     } else {
-        auto actualExtent = window.getExtent();
+        auto actualExtent = window.extent();
 
         actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
         actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);

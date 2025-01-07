@@ -58,7 +58,7 @@ void Validator::cleanUpDebugMessenger(VkInstance instance)
     DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 }
 
-VkDebugUtilsMessengerCreateInfoEXT Validator::getCreateInfo() 
+VkDebugUtilsMessengerCreateInfoEXT Validator::getCreateInfo() const 
 {
     VkDebugUtilsMessengerCreateInfoEXT createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -68,7 +68,7 @@ VkDebugUtilsMessengerCreateInfoEXT Validator::getCreateInfo()
     return createInfo;
 }
 
-std::vector<const char*> Validator::getRequiredExtensions() 
+std::vector<const char*> Validator::getRequiredExtensions() const 
 {
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -82,7 +82,7 @@ std::vector<const char*> Validator::getRequiredExtensions()
     return extensions;
 }
 
-bool Validator::checkValidationLayerSupport() 
+bool Validator::checkValidationLayerSupport() const 
 {
     if(!enableValidationLayers) 
         return true;
