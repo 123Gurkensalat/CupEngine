@@ -1,7 +1,10 @@
 #include "swap_chain.hpp"
 #include <GLFW/glfw3.h>
 #include <algorithm>
+#include <iostream>
+#include <iterator>
 #include <limits>
+#include <ostream>
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
 
@@ -274,7 +277,6 @@ void SwapChain::createSyncObjects()
             throw std::runtime_error("failed to create semaphores!");
         }
     }
-    
 }
 
 VkResult SwapChain::acquireNextImage(const uint32_t currentFrame, uint32_t* imageIndex) 
@@ -314,13 +316,17 @@ VkResult SwapChain::submitCommandBuffer(const uint32_t currentFrame, const VkCom
     
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffer;
-
-    submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
-    submitInfo.pSignalSemaphores = signalSemaphores.data();
+    
+    if (window.status != Window::CLOSING) {
+        submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
+        submitInfo.pSignalSemaphores = signalSemaphores.data();
+    }
 
     if (vkQueueSubmit(device.graphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS){
         throw std::runtime_error("failed to submit draw command buffer!");
     }
+
+    if (window.status == Window::CLOSING) return VK_SUCCESS;
 
     std::vector<VkSwapchainKHR> swapChains = {swapChain};
 
@@ -332,7 +338,17 @@ VkResult SwapChain::submitCommandBuffer(const uint32_t currentFrame, const VkCom
     presentInfo.pSwapchains = swapChains.data();
     presentInfo.pImageIndices = &imageIndex;
     presentInfo.pResults = nullptr;
-
+    
     VkResult result = vkQueuePresentKHR(device.presentQueue(), &presentInfo);
     return result;
+}
+
+bool SwapChain::fencesFinished() 
+{
+    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        if (vkGetFenceStatus(device.device(), inFlightFences[i]) != VK_SUCCESS) {
+            return false;
+        }
+    }
+    return true;
 }

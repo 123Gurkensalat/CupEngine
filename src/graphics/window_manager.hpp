@@ -19,11 +19,14 @@ namespace cup
         Window& mainWindow() { return *windows[0]; }
         Window& currentWindow() { return *currentWindow_; }
     private:
+        void createMainWindow();
+
         Instance& instance;
 
         std::vector<Window*> windows;
         std::unique_ptr<Device> device;
         std::vector<Renderer*> renderers;
         Window* currentWindow_;
+        uint32_t windowsCount = 0;
     };
 }

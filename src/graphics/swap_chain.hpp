@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <vector>
 #include <vulkan/vulkan_core.h>
+
 namespace cup 
 {
     class SwapChain {
@@ -14,6 +15,7 @@ namespace cup
 
         VkResult acquireNextImage(uint32_t currentFrame, uint32_t* imageIndex);
         VkResult submitCommandBuffer(uint32_t currentFrame, VkCommandBuffer commandBuffer, uint32_t imageIndex);
+        bool fencesFinished();
 
         const VkRenderPass renderPass() { return renderPass_; }
         const std::vector<VkFramebuffer>& framebuffers() { return framebuffers_; }

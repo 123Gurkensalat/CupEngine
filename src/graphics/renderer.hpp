@@ -23,6 +23,7 @@ namespace cup
         Renderer& operator=(Renderer&&) = delete;
 
         void drawFrame();
+        bool finished();
 
     private:
         void createPipeline();

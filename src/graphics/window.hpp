@@ -9,6 +9,11 @@ namespace cup
 {
     class Window {
     public:
+        enum Status {
+            ACTIVE,
+            CLOSING
+        };
+
         Window(Instance& instance, const char* title);
         ~Window();
         
@@ -28,6 +33,7 @@ namespace cup
         static constexpr uint32_t WIDTH = 800; 
         static constexpr uint32_t HEIGHT = 600; 
 
+        Status status = ACTIVE;
     private:
         void createWindow(const char* title);
         void createSurface();

@@ -47,6 +47,11 @@ void Renderer::drawFrame()
     currentFrame = (currentFrame + 1) % SwapChain::MAX_FRAMES_IN_FLIGHT;
 }
 
+bool Renderer::finished() 
+{
+    return swapChain.fencesFinished();
+}
+
 void Renderer::createPipeline() 
 {
     PipelineConfigInfo pipelineConfig{};
