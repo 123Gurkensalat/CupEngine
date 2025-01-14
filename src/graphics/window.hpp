@@ -11,7 +11,8 @@ namespace cup
     public:
         enum Status {
             ACTIVE,
-            CLOSING
+            CLOSING,
+            CLOSED
         };
 
         Window(Instance& instance, const char* title);

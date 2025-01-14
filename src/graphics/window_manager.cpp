@@ -32,15 +32,20 @@ void WindowManager::run()
         // update windows
         for (int i = 0; i < windowsCount; i++) {
             if (renderers[i] == nullptr) continue;
-            if (windows[i]->status == Window::CLOSING) continue;
+            if (windows[i]->status == Window::CLOSED) continue;
             renderers[i]->drawFrame();
+            if (windows[i]->status == Window::CLOSING) {
+                windows[i]->status = Window::CLOSED;
+            }
         }
 
         // check for windows closing events
         for (uint32_t i = 1; i < windows.size(); i++) {
-            if(windows[i] == nullptr) continue;
-            if(!windows[i]->shouldClose()) continue;
-            windows[i]->status = Window::CLOSING;
+            if (windows[i] == nullptr) continue;
+            if (!windows[i]->shouldClose()) continue;
+            if (windows[i]->status == Window::ACTIVE) {
+                windows[i]->status = Window::CLOSING;
+            }
 
             if (!renderers[i]->finished()) continue;
             delete renderers[i];

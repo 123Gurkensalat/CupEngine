@@ -317,7 +317,7 @@ VkResult SwapChain::submitCommandBuffer(const uint32_t currentFrame, const VkCom
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffer;
     
-    if (window.status != Window::CLOSING) {
+    if (window.status == Window::ACTIVE) {
         submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
         submitInfo.pSignalSemaphores = signalSemaphores.data();
     }
