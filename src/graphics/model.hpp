@@ -12,7 +12,13 @@ namespace cup
 
     class Model {
     public:
-        struct Vertex;
+        struct Vertex {
+            glm::vec2 position;
+            glm::vec3 color;
+
+            static VkVertexInputBindingDescription getBindingDescription();
+            static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions();
+        };
 
         Model(Device& device, Renderer& renderer);
         ~Model();
@@ -24,22 +30,30 @@ namespace cup
         void draw(VkCommandBuffer commandBuffer);
 
     private:
-        void createVertexBuffer();
+        void createDeviceBuffer(
+            VkDeviceSize size,
+            const void* data,
+            VkBuffer* dstBuffer, 
+            VkDeviceMemory* dstBufferMemory,
+            VkBufferUsageFlags usage);
 
         Device& device;
         Renderer& renderer;
 
         VkBuffer vertexBuffer;
         VkDeviceMemory vertexBufferMemory;
+        VkBuffer indexBuffer;
+        VkDeviceMemory indexBufferMemory;
 
-        const std::vector<Vertex> vertices;
-    };
+        const std::vector<Vertex> vertices = {
+            {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+            {{ 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+            {{ 0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}},
+            {{-0.5f,  0.5f}, {1.0f, 1.0f, 1.0f}}
+        };
 
-    struct Model::Vertex {
-        glm::vec2 position;
-        glm::vec3 color;
-
-        static VkVertexInputBindingDescription getBindingDescription();
-        static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions();
+        const std::vector<uint16_t> indices = {
+            0, 1, 2, 2, 3, 0
+        };
     };
 }

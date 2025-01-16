@@ -7,49 +7,54 @@
 using cup::Model;
 using Vertex = cup::Model::Vertex;
 
-Model::Model(Device& device, Renderer& renderer) : device(device), renderer(renderer), 
-    vertices({
-        {{ 0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-        {{ 0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}},
-        {{-0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}},
-    }) 
+Model::Model(Device& device, Renderer& renderer) : device(device), renderer(renderer)
 {
-    createVertexBuffer();
+    VkDeviceSize vertexBufferSize = sizeof(vertices[0]) * vertices.size();
+    VkDeviceSize indexBufferSize = sizeof(indices[0]) * indices.size();
+
+    createDeviceBuffer(vertexBufferSize, vertices.data(), &vertexBuffer, &vertexBufferMemory, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+    createDeviceBuffer(indexBufferSize, indices.data(), &indexBuffer, &indexBufferMemory, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 }
 
 Model::~Model()
 {
+    vkDestroyBuffer(device.device(), indexBuffer, nullptr);
+    vkFreeMemory(device.device(), indexBufferMemory, nullptr);
+
     vkDestroyBuffer(device.device(), vertexBuffer, nullptr);
     vkFreeMemory(device.device(), vertexBufferMemory, nullptr);
 }
 
-void Model::createVertexBuffer() 
+void Model::createDeviceBuffer(
+        VkDeviceSize size, 
+        const void* data, 
+        VkBuffer* dstBuffer, 
+        VkDeviceMemory* dstBufferMemory, 
+        VkBufferUsageFlags usage) 
 {
-    VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
-
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
     device.createBuffer(
-        bufferSize, 
+        size, 
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
         &stagingBuffer,
         &stagingBufferMemory);
 
-    void* data;
-    vkMapMemory(device.device(), stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
+    void* datas;
+    vkMapMemory(device.device(), stagingBufferMemory, 0, size, 0, &datas);
+    memcpy(datas, data, static_cast<size_t>(size));
     vkUnmapMemory(device.device(), stagingBufferMemory);
 
     device.createBuffer(
-        bufferSize, 
-        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
+        size, 
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage, 
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
-        &vertexBuffer, 
-        &vertexBufferMemory);
+        dstBuffer, 
+        dstBufferMemory);
 
     VkCommandBuffer commandBuffer = renderer.beginTransferCommands();
-    device.copyBuffer(bufferSize, stagingBuffer, vertexBuffer, commandBuffer);
+    device.copyBuffer(size, stagingBuffer, *dstBuffer, commandBuffer);
     renderer.endTransferCommands(commandBuffer);
 
     vkDestroyBuffer(device.device(), stagingBuffer, nullptr);
@@ -87,9 +92,10 @@ void Model::bind(VkCommandBuffer commandBuffer)
     VkBuffer vertexBuffers[] = {vertexBuffer};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+    vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
 }
 
 void Model::draw(VkCommandBuffer commandBuffer)
 {
-    vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 }
