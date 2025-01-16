@@ -1,4 +1,5 @@
-#include  "model.hpp"
+#include "model.hpp"
+#include "renderer.hpp"
 #include <array>
 #include <cstring>
 #include <vulkan/vulkan_core.h>
@@ -6,7 +7,7 @@
 using cup::Model;
 using Vertex = cup::Model::Vertex;
 
-Model::Model(Device& device) : device(device), 
+Model::Model(Device& device, Renderer& renderer) : device(device), renderer(renderer), 
     vertices({
         {{ 0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
         {{ 0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}},
@@ -26,17 +27,33 @@ void Model::createVertexBuffer()
 {
     VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
     device.createBuffer(
         bufferSize, 
-        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+        &stagingBuffer,
+        &stagingBufferMemory);
+
+    void* data;
+    vkMapMemory(device.device(), stagingBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
+    vkUnmapMemory(device.device(), stagingBufferMemory);
+
+    device.createBuffer(
+        bufferSize, 
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
         &vertexBuffer, 
         &vertexBufferMemory);
 
-    void* data;
-    vkMapMemory(device.device(), vertexBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
-    vkUnmapMemory(device.device(), vertexBufferMemory);
+    VkCommandBuffer commandBuffer = renderer.beginTransferCommands();
+    device.copyBuffer(bufferSize, stagingBuffer, vertexBuffer, commandBuffer);
+    renderer.endTransferCommands(commandBuffer);
+
+    vkDestroyBuffer(device.device(), stagingBuffer, nullptr);
+    vkFreeMemory(device.device(), stagingBufferMemory, nullptr);
 }
 
 VkVertexInputBindingDescription Vertex::getBindingDescription() 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "graphics/instance.hpp"
-#include "validator.hpp"
 #include "window.hpp"
 #include <cstdint>
 #include <optional>
@@ -13,22 +12,34 @@ namespace cup
     {
         std::optional<uint32_t> graphicsFamily;
         std::optional<uint32_t> presentFamily; 
+        std::optional<uint32_t> transferFamily;
 
         inline uint32_t* data() const {
             static uint32_t arr[] = {
                 graphicsFamily.value(),
-                presentFamily.value()
+                presentFamily.value(),
+                transferFamily.value()
             };
 
             return arr;
         }
 
+        inline uint32_t size() const {
+            return 3;
+        }
+
         inline bool isComplete() const {
-            return graphicsFamily.has_value() && presentFamily.has_value();
+            return graphicsFamily.has_value() && 
+                   presentFamily.has_value() && 
+                   transferFamily.has_value();
+        }
+
+        inline bool hasDedicatedTransferFamiliy() const {
+            return graphicsFamily.value() != transferFamily.value();
         }
 
         inline std::set<uint32_t> uniqueQueueFamilies() const {
-            return {graphicsFamily.value(), presentFamily.value()};
+            return {graphicsFamily.value(), presentFamily.value(), transferFamily.value()};
         }
     };
 
@@ -56,9 +67,18 @@ namespace cup
             VkBuffer* buffer, 
             VkDeviceMemory* bufferMemory);        
 
-        inline VkDevice device() { return device_; }
-        inline VkQueue graphicsQueue() {return graphicsQueue_;}
-        inline VkQueue presentQueue() { return presentQueue_; }
+        void copyBuffer(
+            VkDeviceSize size, 
+            VkBuffer srcBuffer, 
+            VkBuffer dstBuffer, 
+            VkCommandBuffer commandBuffer);
+
+        VkCommandBuffer beginTransferCommands();
+
+        inline VkDevice device() const { return device_; }
+        inline VkQueue graphicsQueue() const {return graphicsQueue_;}
+        inline VkQueue presentQueue() const { return presentQueue_; }
+        inline VkQueue transferQueue() const { return transferQueue_; }
 
         inline QueueFamilyIndices getPhysicalQueueFamilies() { return findQueueFamilies(physicalDevice_); }
         inline SwapChainSupportDetails getSwapChainSupport() { return querySwapChainSupport(physicalDevice_); }
@@ -82,5 +102,6 @@ namespace cup
         VkDevice device_;
         VkQueue graphicsQueue_;
         VkQueue presentQueue_;
+        VkQueue transferQueue_;
     };
 }

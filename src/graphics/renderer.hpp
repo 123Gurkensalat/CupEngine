@@ -22,12 +22,14 @@ namespace cup
         Renderer(Renderer&&) = delete;
         Renderer& operator=(Renderer&&) = delete;
 
+        VkCommandBuffer beginTransferCommands();
+        void endTransferCommands(VkCommandBuffer);
         void drawFrame();
         bool finished();
 
     private:
         void createPipeline();
-        void createCommandPool();
+        void createCommandPool(uint32_t queueFamilyIndex, VkCommandPool* commandPool);
         void createCommandBuffer();
         void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
@@ -36,11 +38,12 @@ namespace cup
         SwapChain swapChain{device, window};
         std::unique_ptr<Pipeline> pipeline;
 
-        VkCommandPool commandPool;
+        VkCommandPool graphicsCommandPool;
+        VkCommandPool transferCommandPool;
         std::vector<VkCommandBuffer> commandBuffers;
         uint32_t currentFrame = 0; 
 
         // temp
-        Model model;
+        std::unique_ptr<Model> model;
     };
 }

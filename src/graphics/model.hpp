@@ -8,11 +8,13 @@
 
 namespace cup 
 {
+    class Renderer;
+
     class Model {
     public:
         struct Vertex;
 
-        Model(Device& device);
+        Model(Device& device, Renderer& renderer);
         ~Model();
 
         Model(const Model&) = delete;
@@ -25,6 +27,7 @@ namespace cup
         void createVertexBuffer();
 
         Device& device;
+        Renderer& renderer;
 
         VkBuffer vertexBuffer;
         VkDeviceMemory vertexBufferMemory;

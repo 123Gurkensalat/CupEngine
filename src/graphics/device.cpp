@@ -2,7 +2,6 @@
 #include "graphics/window.hpp"
 
 #include <cstdint>
-#include <iostream>
 #include <map>
 #include <set>
 #include <stdexcept>
@@ -102,7 +101,7 @@ QueueFamilyIndices Device::findQueueFamilies(VkPhysicalDevice physicalDevice)
     std::vector<VkQueueFamilyProperties> queueFamilies{queueFamilyCount};
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
 
-    int i = 0;
+    uint32_t i = 0;
     for (const auto& queueFamily : queueFamilies) {
         if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             indices.graphicsFamily = i;
@@ -115,9 +114,19 @@ QueueFamilyIndices Device::findQueueFamilies(VkPhysicalDevice physicalDevice)
             indices.presentFamily = i;
         }
 
+        // dedicated transfer family
+        if (queueFamily.queueFlags & VK_QUEUE_TRANSFER_BIT  && 
+          !(queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)) {
+            indices.transferFamily = i;
+        }
+
         if (indices.isComplete()) break;
 
         i++;
+    }
+
+    if (!indices.transferFamily.has_value()) {
+        indices.transferFamily = indices.graphicsFamily;
     }
 
     return indices;
@@ -205,6 +214,7 @@ void Device::createLogicalDevice() {
 
     vkGetDeviceQueue(device_, indices.graphicsFamily.value(), 0, &graphicsQueue_);
     vkGetDeviceQueue(device_, indices.presentFamily.value(), 0, &presentQueue_);
+    vkGetDeviceQueue(device_, indices.transferFamily.value(), 0, &transferQueue_);
 }
 
 void Device::createBuffer(
@@ -214,11 +224,20 @@ void Device::createBuffer(
         VkBuffer* buffer, 
         VkDeviceMemory* bufferMemory)
 {
+    auto queueFamily = getPhysicalQueueFamilies();
+    uint32_t queueFamilyIndices[] = {queueFamily.graphicsFamily.value(), queueFamily.transferFamily.value()};
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferInfo.size = size;
     bufferInfo.usage = usage;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    if (queueFamily.hasDedicatedTransferFamiliy()) {
+        bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+        bufferInfo.queueFamilyIndexCount = 2;
+        bufferInfo.pQueueFamilyIndices = queueFamilyIndices;
+    } else {
+        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    }
 
     if (vkCreateBuffer(device_, &bufferInfo, nullptr, buffer) != VK_SUCCESS) {
         throw std::runtime_error("failed to create vertex Buffer!");
@@ -237,6 +256,19 @@ void Device::createBuffer(
     }
 
     vkBindBufferMemory(device_, *buffer, *bufferMemory, 0);
+}
+
+void Device::copyBuffer(
+        VkDeviceSize size, 
+        VkBuffer srcBuffer, 
+        VkBuffer dstBuffer, 
+        VkCommandBuffer commandBuffer) 
+{
+    VkBufferCopy copyRegion{};
+    copyRegion.srcOffset = 0;
+    copyRegion.dstOffset = 0;
+    copyRegion.size = size;
+    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 }
 
 uint32_t Device::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) 

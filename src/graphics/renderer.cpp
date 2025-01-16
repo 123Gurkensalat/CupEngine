@@ -2,21 +2,26 @@
 #include "graphics/device.hpp"
 #include "graphics/window.hpp"
 #include <cstdint>
+#include <memory>
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
 
 using cup::Renderer;
 
-Renderer::Renderer(cup::Device& device, cup::Window& window) : device(device), window(window), swapChain(device, window), model(device)
+Renderer::Renderer(cup::Device& device, cup::Window& window) : device(device), window(window), swapChain(device, window)
 {
+    QueueFamilyIndices queueFamilyIndices = device.getPhysicalQueueFamilies();
     createPipeline();
-    createCommandPool();
+    createCommandPool(queueFamilyIndices.graphicsFamily.value(), &graphicsCommandPool);
+    createCommandPool(queueFamilyIndices.transferFamily.value(), &transferCommandPool);
     createCommandBuffer();
+    model = std::make_unique<Model>(device, *this);
 }
 
 Renderer::~Renderer()
 {
-    vkDestroyCommandPool(device.device(), commandPool, nullptr);
+    vkDestroyCommandPool(device.device(), graphicsCommandPool, nullptr);
+    vkDestroyCommandPool(device.device(), transferCommandPool, nullptr);
 }
 
 void Renderer::drawFrame()
@@ -61,16 +66,14 @@ void Renderer::createPipeline()
     pipeline = std::make_unique<Pipeline>(device, swapChain, pipelineConfig);
 }
 
-void Renderer::createCommandPool()
+void Renderer::createCommandPool(uint32_t queueFamilyIndex, VkCommandPool* commandPool)
 {
-    QueueFamilyIndices queueFamilyIndices = device.getPhysicalQueueFamilies();
-
     VkCommandPoolCreateInfo commandPoolInfo{};
     commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    commandPoolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+    commandPoolInfo.queueFamilyIndex = queueFamilyIndex;
     
-    if (vkCreateCommandPool(device.device(), &commandPoolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+    if (vkCreateCommandPool(device.device(), &commandPoolInfo, nullptr, commandPool) != VK_SUCCESS) {
         throw std::runtime_error("could not create command pool!");
     }
 }
@@ -81,13 +84,48 @@ void Renderer::createCommandBuffer()
 
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = commandPool;
+    allocInfo.commandPool = graphicsCommandPool;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
 
     if (vkAllocateCommandBuffers(device.device(), &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
         throw std::runtime_error("could not allocate command buffers!");
     }
+}
+
+VkCommandBuffer Renderer::beginTransferCommands()
+{
+    VkCommandBufferAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool = transferCommandPool;
+    allocInfo.commandBufferCount = 1;
+
+    VkCommandBuffer commandBuffer;
+    vkAllocateCommandBuffers(device.device(), &allocInfo, &commandBuffer);
+
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+    return commandBuffer;
+}
+
+void Renderer::endTransferCommands(VkCommandBuffer commandBuffer) 
+{
+    vkEndCommandBuffer(commandBuffer);
+
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+
+    vkQueueSubmit(device.transferQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(device.transferQueue());
+
+    vkFreeCommandBuffers(device.device(), transferCommandPool, 1, &commandBuffer);
 }
 
 void Renderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) 
@@ -117,7 +155,7 @@ void Renderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t image
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipeline());
 
-    model.bind(commandBuffer);
+    model->bind(commandBuffer);
 
     VkViewport viewport{};
     viewport.x = 0.0f;
@@ -133,7 +171,7 @@ void Renderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t image
     scissor.offset = {0, 0};
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-    model.draw(commandBuffer);
+    model->draw(commandBuffer);
 
     vkCmdEndRenderPass(commandBuffer);
 
