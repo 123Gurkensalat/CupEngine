@@ -9,6 +9,7 @@ using cup::Pipeline;
 Pipeline::Pipeline(Device& device, SwapChain& swapChain, PipelineConfigInfo& configInfo)
     : device(device), swapChain(swapChain)
 {
+    createDescriptorSetLayout();
     createPipelineLayout();
     createPipeline(configInfo);
 }
@@ -17,6 +18,7 @@ Pipeline::~Pipeline()
 {
     vkDestroyPipeline(device.device(), pipeline_, nullptr);
     vkDestroyPipelineLayout(device.device(), pipelineLayout_, nullptr);
+    vkDestroyDescriptorSetLayout(device.device(), descriptorSetLayout_, nullptr);
 }
 
 void Pipeline::createPipeline(const PipelineConfigInfo& configInfo) 
@@ -100,12 +102,31 @@ VkShaderModule Pipeline::createShaderModule (const std::vector<char>& code)
     return shaderModule;
 }
 
+void Pipeline::createDescriptorSetLayout() 
+{
+    VkDescriptorSetLayoutBinding uboLayoutBinding{};
+    uboLayoutBinding.binding = 0;
+    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    uboLayoutBinding.descriptorCount = 1;
+    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    uboLayoutBinding.pImmutableSamplers = nullptr;
+
+    VkDescriptorSetLayoutCreateInfo layoutInfo{};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = 1;
+    layoutInfo.pBindings = &uboLayoutBinding;
+
+    if (vkCreateDescriptorSetLayout(device.device(), &layoutInfo, nullptr, &descriptorSetLayout_) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create descriptor set layout!");
+    }
+}
+
 void Pipeline::createPipelineLayout() 
 {
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = 0;
-    pipelineLayoutInfo.pSetLayouts = VK_NULL_HANDLE;
+    pipelineLayoutInfo.setLayoutCount = 1;
+    pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout_;
     pipelineLayoutInfo.pushConstantRangeCount = 0;
     pipelineLayoutInfo.pPushConstantRanges = VK_NULL_HANDLE;
 
@@ -113,6 +134,7 @@ void Pipeline::createPipelineLayout()
         throw std::runtime_error("could not create pipeline layout!");
     }
 }
+
 
 void Pipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo) 
 {
@@ -133,7 +155,7 @@ void Pipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo)
     configInfo.rasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
     configInfo.rasterizationInfo.polygonMode = VK_POLYGON_MODE_FILL;
     configInfo.rasterizationInfo.lineWidth = 1.0f;
-    configInfo.rasterizationInfo.cullMode = VK_CULL_MODE_NONE;
+    configInfo.rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;
     configInfo.rasterizationInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
     configInfo.rasterizationInfo.depthBiasEnable = VK_FALSE;
     configInfo.rasterizationInfo.depthBiasConstantFactor = 0.0f;

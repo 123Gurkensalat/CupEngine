@@ -36,6 +36,8 @@ void Renderer::drawFrame()
         throw std::runtime_error("failed to acquire swap chain image!");
     }
 
+    model->updateUniformBuffer(imageIndex, swapChain);
+
     vkResetCommandBuffer(commandBuffers[currentFrame], 0);
 
     recordCommandBuffer(commandBuffers[currentFrame], imageIndex);

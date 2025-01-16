@@ -1,6 +1,7 @@
 #pragma once
 
 #include "graphics/device.hpp"
+#include "graphics/swap_chain.hpp"
 #include <array>
 #include <glm/glm.hpp>
 #include <vector>
@@ -12,6 +13,12 @@ namespace cup
 
     class Model {
     public:
+        struct UniformBufferObject {
+            glm::mat4 model;
+            glm::mat4 view;
+            glm::mat4 proj;
+        };
+
         struct Vertex {
             glm::vec2 position;
             glm::vec3 color;
@@ -26,6 +33,8 @@ namespace cup
         Model(const Model&) = delete;
         Model &operator=(const Model&) = delete;
 
+        void updateUniformBuffer(uint32_t currentImage, const SwapChain& swapChain);
+
         void bind(VkCommandBuffer commandBuffer);
         void draw(VkCommandBuffer commandBuffer);
 
@@ -37,6 +46,8 @@ namespace cup
             VkDeviceMemory* dstBufferMemory,
             VkBufferUsageFlags usage);
 
+        void createUniformBuffers(); 
+
         Device& device;
         Renderer& renderer;
 
@@ -44,16 +55,24 @@ namespace cup
         VkDeviceMemory vertexBufferMemory;
         VkBuffer indexBuffer;
         VkDeviceMemory indexBufferMemory;
+        
+        std::vector<VkBuffer> uniformBuffers;
+        std::vector<VkDeviceMemory> uniformBuffersMemory;
+        std::vector<void*> uniformBuffersMapped;
 
         const std::vector<Vertex> vertices = {
-            {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-            {{ 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-            {{ 0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}},
-            {{-0.5f,  0.5f}, {1.0f, 1.0f, 1.0f}}
+            {{-0.5f, -0.5f}, {0.469f, 0.000f, 0.000f}},
+            {{-0.5f,  0.5f}, {0.754f, 0.070f, 0.121f}},
+            {{ 0.0f,  0.0f}, {0.992f, 0.941f, 0.835f}},
+            {{ 0.5f,  0.5f}, {0.000f, 0.188f, 0.286f}},
+            {{ 0.5f, -0.5f}, {0.400f, 0.608f, 0.737f}}
         };
 
         const std::vector<uint16_t> indices = {
-            0, 1, 2, 2, 3, 0
+            0, 2, 1, 
+            4, 2, 0,
+            3, 2, 4,
+            1, 2, 3
         };
     };
 }

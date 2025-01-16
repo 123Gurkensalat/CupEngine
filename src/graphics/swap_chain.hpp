@@ -19,7 +19,7 @@ namespace cup
 
         const VkRenderPass renderPass() { return renderPass_; }
         const std::vector<VkFramebuffer>& framebuffers() { return framebuffers_; }
-        const VkExtent2D extent() { return extent_; }
+        const VkExtent2D extent() const { return extent_; }
 
         void recreateSwapChain();
 

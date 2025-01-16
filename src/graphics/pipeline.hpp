@@ -40,6 +40,7 @@ namespace cup
         inline VkPipelineLayout pipelineLayout() { return pipelineLayout_; }
 
     private:
+        void createDescriptorSetLayout();
         void createPipelineLayout();
         void createPipeline(const PipelineConfigInfo& configInfo);
         VkShaderModule createShaderModule(const std::vector<char>& code);
@@ -50,6 +51,7 @@ namespace cup
         VkShaderModule vertShaderModule;
         VkShaderModule fragShaderModule;
 
+        VkDescriptorSetLayout descriptorSetLayout_;
         VkPipelineLayout pipelineLayout_;
         VkPipeline pipeline_;
     };
