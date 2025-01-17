@@ -36,7 +36,7 @@ void Renderer::drawFrame()
         throw std::runtime_error("failed to acquire swap chain image!");
     }
 
-    model->updateUniformBuffer(imageIndex, swapChain);
+    model->updateUniformBuffer(currentFrame, swapChain);
 
     vkResetCommandBuffer(commandBuffers[currentFrame], 0);
 
@@ -65,7 +65,7 @@ void Renderer::createPipeline()
     Pipeline::defaultPipelineConfigInfo(pipelineConfig);
     pipelineConfig.vertShaderFilePath = "../src/graphics/shader/bin/default.vert.spv"; 
     pipelineConfig.fragShaderFilePath = "../src/graphics/shader/bin/default.frag.spv"; 
-    pipeline = std::make_unique<Pipeline>(device, swapChain, pipelineConfig);
+    pipeline_ = std::make_unique<Pipeline>(device, swapChain, pipelineConfig);
 }
 
 void Renderer::createCommandPool(uint32_t queueFamilyIndex, VkCommandPool* commandPool)
@@ -155,9 +155,9 @@ void Renderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t image
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipeline());
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_->pipeline());
 
-    model->bind(commandBuffer);
+    model->bind(commandBuffer, currentFrame);
 
     VkViewport viewport{};
     viewport.x = 0.0f;

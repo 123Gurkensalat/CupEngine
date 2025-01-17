@@ -345,7 +345,7 @@ VkResult SwapChain::submitCommandBuffer(const uint32_t currentFrame, const VkCom
 
 bool SwapChain::fencesFinished() 
 {
-    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         if (vkGetFenceStatus(device.device(), inFlightFences[i]) != VK_SUCCESS) {
             return false;
         }

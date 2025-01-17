@@ -22,6 +22,8 @@ namespace cup
         Renderer(Renderer&&) = delete;
         Renderer& operator=(Renderer&&) = delete;
 
+        inline Pipeline& pipeline() const { return *pipeline_; }
+
         VkCommandBuffer beginTransferCommands();
         void endTransferCommands(VkCommandBuffer);
         void drawFrame();
@@ -36,11 +38,12 @@ namespace cup
         Device& device;
         Window& window;
         SwapChain swapChain{device, window};
-        std::unique_ptr<Pipeline> pipeline;
+        std::unique_ptr<Pipeline> pipeline_;
 
         VkCommandPool graphicsCommandPool;
         VkCommandPool transferCommandPool;
         std::vector<VkCommandBuffer> commandBuffers;
+        
         uint32_t currentFrame = 0; 
 
         // temp

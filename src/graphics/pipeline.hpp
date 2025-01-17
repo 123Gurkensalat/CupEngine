@@ -36,8 +36,9 @@ namespace cup
 
         static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo);
 
-        inline VkPipeline pipeline() { return pipeline_; }
-        inline VkPipelineLayout pipelineLayout() { return pipelineLayout_; }
+        inline VkPipeline pipeline() const { return pipeline_; }
+        inline VkPipelineLayout pipelineLayout() const { return pipelineLayout_; }
+        inline VkDescriptorSetLayout descriptorSetLayout() const { return descriptorSetLayout_; }
 
     private:
         void createDescriptorSetLayout();

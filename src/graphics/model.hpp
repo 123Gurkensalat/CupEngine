@@ -35,10 +35,12 @@ namespace cup
 
         void updateUniformBuffer(uint32_t currentImage, const SwapChain& swapChain);
 
-        void bind(VkCommandBuffer commandBuffer);
+        void bind(VkCommandBuffer commandBuffer, uint32_t currentFrame);
         void draw(VkCommandBuffer commandBuffer);
 
     private:
+        void createDescriptorPool();
+        void createDescriptorSets();
         void createDeviceBuffer(
             VkDeviceSize size,
             const void* data,
@@ -55,7 +57,9 @@ namespace cup
         VkDeviceMemory vertexBufferMemory;
         VkBuffer indexBuffer;
         VkDeviceMemory indexBufferMemory;
-        
+       
+        VkDescriptorPool descriptorPool;
+        std::vector<VkDescriptorSet> descriptorSets;
         std::vector<VkBuffer> uniformBuffers;
         std::vector<VkDeviceMemory> uniformBuffersMemory;
         std::vector<void*> uniformBuffersMapped;

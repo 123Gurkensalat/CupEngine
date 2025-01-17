@@ -10,6 +10,9 @@
 #include <chrono>
 #include <cstring>
 #include <glm/trigonometric.hpp>
+#include <iostream>
+#include <ostream>
+#include <stdexcept>
 #include <vulkan/vulkan_core.h>
 
 using cup::Model;
@@ -22,10 +25,16 @@ Model::Model(Device& device, Renderer& renderer) : device(device), renderer(rend
 
     createDeviceBuffer(vertexBufferSize, vertices.data(), &vertexBuffer, &vertexBufferMemory, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
     createDeviceBuffer(indexBufferSize, indices.data(), &indexBuffer, &indexBufferMemory, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+    createUniformBuffers();
+
+    createDescriptorPool();
+    createDescriptorSets();
 }
 
 Model::~Model()
 {
+    vkDestroyDescriptorPool(device.device(), descriptorPool, nullptr);
+
     for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroyBuffer(device.device(), uniformBuffers[i], nullptr);
         vkFreeMemory(device.device(), uniformBuffersMemory[i], nullptr);
@@ -36,6 +45,59 @@ Model::~Model()
 
     vkDestroyBuffer(device.device(), vertexBuffer, nullptr);
     vkFreeMemory(device.device(), vertexBufferMemory, nullptr);
+}
+
+void Model::createDescriptorPool() 
+{
+    VkDescriptorPoolSize poolSize{};
+    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSize.descriptorCount = static_cast<uint32_t>(SwapChain::MAX_FRAMES_IN_FLIGHT);
+
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = &poolSize;
+    poolInfo.maxSets = static_cast<uint32_t>(SwapChain::MAX_FRAMES_IN_FLIGHT);
+
+    if (vkCreateDescriptorPool(device.device(), &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create descriptor pool!");
+    }
+}
+
+void Model::createDescriptorSets() 
+{
+    std::vector<VkDescriptorSetLayout> layouts(SwapChain::MAX_FRAMES_IN_FLIGHT, renderer.pipeline().descriptorSetLayout());
+    VkDescriptorSetAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = descriptorPool;
+    allocInfo.descriptorSetCount = SwapChain::MAX_FRAMES_IN_FLIGHT;
+    allocInfo.pSetLayouts = layouts.data();
+
+    descriptorSets.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
+
+    if (vkAllocateDescriptorSets(device.device(), &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
+        throw std::runtime_error("failed to allocate descripot sets!");
+    }
+
+    for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
+        VkDescriptorBufferInfo bufferInfo{};
+        bufferInfo.buffer = uniformBuffers[i];
+        bufferInfo.offset = 0;
+        bufferInfo.range = sizeof(UniformBufferObject);
+
+        VkWriteDescriptorSet descriptorWrite{};
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet = descriptorSets[i];
+        descriptorWrite.dstBinding = 0;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pBufferInfo = &bufferInfo;
+        descriptorWrite.pImageInfo = nullptr;
+        descriptorWrite.pTexelBufferView = nullptr;
+
+        vkUpdateDescriptorSets(device.device(), 1, &descriptorWrite, 0, nullptr);
+    }
 }
 
 void Model::createDeviceBuffer(
@@ -94,7 +156,8 @@ void Model::createUniformBuffers()
     }
 }
 
-void Model::updateUniformBuffer(uint32_t currentImage, const SwapChain& swapChain) {
+void Model::updateUniformBuffer(uint32_t currentImage, const SwapChain& swapChain) 
+{
     static auto startTime = std::chrono::high_resolution_clock::now();
 
     auto currentTime = std::chrono::high_resolution_clock::now();
@@ -135,12 +198,19 @@ std::array<VkVertexInputAttributeDescription, 2> Vertex::getAttributeDescription
     return attributeDescriptions;
 }
         
-void Model::bind(VkCommandBuffer commandBuffer) 
+void Model::bind(VkCommandBuffer commandBuffer, uint32_t currentFrame) 
 {
     VkBuffer vertexBuffers[] = {vertexBuffer};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
     vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+    vkCmdBindDescriptorSets(
+        commandBuffer, 
+        VK_PIPELINE_BIND_POINT_GRAPHICS, 
+        renderer.pipeline().pipelineLayout(), 
+        0, 1, 
+        &descriptorSets[currentFrame], 
+        0, nullptr);
 }
 
 void Model::draw(VkCommandBuffer commandBuffer)
