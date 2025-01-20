@@ -1,15 +1,12 @@
 #include "swap_chain.hpp"
+
 #include <GLFW/glfw3.h>
 #include <algorithm>
-#include <iostream>
-#include <iterator>
 #include <limits>
-#include <ostream>
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
 
-using cup::SwapChain;
-
+using namespace cup;
 
 SwapChain::SwapChain(Device& device, Window& window) : device(device), window(window) 
 {
@@ -66,6 +63,9 @@ void SwapChain::recreateSwapChain() {
     createSwapChain();
     createImageViews();
     createFramebuffers();
+
+    // TODO: RenderPass may change -> Recreate Pipeline
+    // TODO: Pass old swap chain to construction to keep rendering on resizing
 }
 
 void SwapChain::createSwapChain() 
@@ -279,7 +279,7 @@ void SwapChain::createSyncObjects()
     }
 }
 
-VkResult SwapChain::acquireNextImage(const uint32_t currentFrame, uint32_t* imageIndex) 
+VkResult SwapChain::acquireNextImage(uint32_t* imageIndex) 
 {
     vkWaitForFences(
         device.device(), 
@@ -299,7 +299,7 @@ VkResult SwapChain::acquireNextImage(const uint32_t currentFrame, uint32_t* imag
     return result;
 }
 
-VkResult SwapChain::submitCommandBuffer(const uint32_t currentFrame, const VkCommandBuffer commandBuffer, const uint32_t imageIndex) 
+VkResult SwapChain::submitCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) 
 {
     vkResetFences(device.device(), 1, &inFlightFences[currentFrame]);
 
@@ -339,11 +339,11 @@ VkResult SwapChain::submitCommandBuffer(const uint32_t currentFrame, const VkCom
     presentInfo.pImageIndices = &imageIndex;
     presentInfo.pResults = nullptr;
     
-    VkResult result = vkQueuePresentKHR(device.presentQueue(), &presentInfo);
-    return result;
+    currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+    return vkQueuePresentKHR(device.presentQueue(), &presentInfo);
 }
 
-bool SwapChain::fencesFinished() 
+bool SwapChain::fencesFinished() const
 {
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         if (vkGetFenceStatus(device.device(), inFlightFences[i]) != VK_SUCCESS) {

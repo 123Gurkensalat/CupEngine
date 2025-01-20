@@ -1,8 +1,7 @@
 #pragma once
 
 #include "device.hpp"
-#include "graphics/model.hpp"
-#include "pipeline.hpp"
+#include "render_system.hpp"
 #include "swap_chain.hpp"
 #include "window.hpp"
 #include <memory>
@@ -18,35 +17,40 @@ namespace cup
 
         Renderer(const Renderer&) = delete;
         Renderer& operator=(const Renderer&) = delete;
-
         Renderer(Renderer&&) = delete;
         Renderer& operator=(Renderer&&) = delete;
 
-        inline Pipeline& pipeline() const { return *pipeline_; }
+        const SwapChain& swapChain() const { return swapChain_; }
+
+        void draw();
 
         VkCommandBuffer beginTransferCommands();
         void endTransferCommands(VkCommandBuffer);
-        void drawFrame();
-        bool finished();
+
+        bool finished() const { return swapChain_.fencesFinished(); }
 
     private:
-        void createPipeline();
         void createCommandPool(uint32_t queueFamilyIndex, VkCommandPool* commandPool);
         void createCommandBuffer();
-        void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+
+        VkCommandBuffer beginFrame();
+        void endFrame();
+
+        void beginSwapChainRenderPass(VkCommandBuffer commandBuffer);
+        void endSwapChainRenderPass(VkCommandBuffer commandBuffer);
 
         Device& device;
         Window& window;
-        SwapChain swapChain{device, window};
-        std::unique_ptr<Pipeline> pipeline_;
+
+        SwapChain swapChain_{device, window};
 
         VkCommandPool graphicsCommandPool;
         VkCommandPool transferCommandPool;
-        std::vector<VkCommandBuffer> commandBuffers;
+        std::vector<VkCommandBuffer> commandBuffers; 
         
-        uint32_t currentFrame = 0; 
+        std::unique_ptr<RenderSystem> renderSystem;
 
-        // temp
-        std::unique_ptr<Model> model;
+        uint32_t currentImageIndex = 0; 
+        uint32_t currentFrame = 0;
     };
 }

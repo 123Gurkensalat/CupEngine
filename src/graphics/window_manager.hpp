@@ -16,8 +16,8 @@ namespace cup
         void run();
         Window& createWindow(const std::string& title);
 
-        Window& mainWindow() { return *windows[0]; }
-        Window& currentWindow() { return *currentWindow_; }
+        const Window& mainWindow() const { return *windows[0]; }
+        const Window& currentWindow() const { return *currentWindow_; }
     private:
         void createMainWindow();
 

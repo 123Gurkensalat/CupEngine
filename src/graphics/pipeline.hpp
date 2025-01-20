@@ -1,7 +1,6 @@
 #pragma once
 
 #include "device.hpp"
-#include "swap_chain.hpp"
 #include <string>
 #include <vector>
 #include <vulkan/vulkan_core.h>
@@ -24,6 +23,7 @@ namespace cup
         VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
         std::vector<VkDynamicState> dynamicStateEnables;
         VkPipelineDynamicStateCreateInfo dynamicStateInfo;
+        VkDescriptorSetLayout descriptorSetLayout = nullptr;
         VkPipelineLayout pipelineLayout = nullptr;
         VkRenderPass renderPass = nullptr;
         uint32_t subpass = 0;
@@ -31,29 +31,24 @@ namespace cup
     
     class Pipeline {
     public:
-        Pipeline(Device& device, SwapChain& swapChain, PipelineConfigInfo& configInfo);
+        Pipeline(Device& device, PipelineConfigInfo& configInfo);
         ~Pipeline();
 
         static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo);
 
-        inline VkPipeline pipeline() const { return pipeline_; }
-        inline VkPipelineLayout pipelineLayout() const { return pipelineLayout_; }
-        inline VkDescriptorSetLayout descriptorSetLayout() const { return descriptorSetLayout_; }
+        VkPipeline pipeline() const { return pipeline_; }
+
+        void bind(VkCommandBuffer);
 
     private:
-        void createDescriptorSetLayout();
-        void createPipelineLayout();
         void createPipeline(const PipelineConfigInfo& configInfo);
         VkShaderModule createShaderModule(const std::vector<char>& code);
 
         Device& device;
-        SwapChain& swapChain;
 
         VkShaderModule vertShaderModule;
         VkShaderModule fragShaderModule;
 
-        VkDescriptorSetLayout descriptorSetLayout_;
-        VkPipelineLayout pipelineLayout_;
         VkPipeline pipeline_;
     };
 }

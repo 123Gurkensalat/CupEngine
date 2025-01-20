@@ -2,6 +2,7 @@
 #include "window.hpp"
 
 #include <cstdint>
+#include <iostream>
 #include <map>
 #include <set>
 #include <stdexcept>

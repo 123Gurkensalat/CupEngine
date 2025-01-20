@@ -1,7 +1,6 @@
 #pragma once
 
 #include "graphics/device.hpp"
-#include "graphics/swap_chain.hpp"
 #include <array>
 #include <glm/glm.hpp>
 #include <vector>
@@ -13,12 +12,6 @@ namespace cup
 
     class Model {
     public:
-        struct UniformBufferObject {
-            glm::mat4 model;
-            glm::mat4 view;
-            glm::mat4 proj;
-        };
-
         struct Vertex {
             glm::vec2 position;
             glm::vec3 color;
@@ -33,22 +26,16 @@ namespace cup
         Model(const Model&) = delete;
         Model &operator=(const Model&) = delete;
 
-        void updateUniformBuffer(uint32_t currentImage, const SwapChain& swapChain);
-
-        void bind(VkCommandBuffer commandBuffer, uint32_t currentFrame);
+        void bind(VkCommandBuffer commandBuffer);
         void draw(VkCommandBuffer commandBuffer);
 
     private:
-        void createDescriptorPool();
-        void createDescriptorSets();
         void createDeviceBuffer(
             VkDeviceSize size,
             const void* data,
             VkBuffer* dstBuffer, 
             VkDeviceMemory* dstBufferMemory,
             VkBufferUsageFlags usage);
-
-        void createUniformBuffers(); 
 
         Device& device;
         Renderer& renderer;
@@ -58,12 +45,6 @@ namespace cup
         VkBuffer indexBuffer;
         VkDeviceMemory indexBufferMemory;
        
-        VkDescriptorPool descriptorPool;
-        std::vector<VkDescriptorSet> descriptorSets;
-        std::vector<VkBuffer> uniformBuffers;
-        std::vector<VkDeviceMemory> uniformBuffersMemory;
-        std::vector<void*> uniformBuffersMapped;
-
         const std::vector<Vertex> vertices = {
             {{-0.5f, -0.5f}, {0.469f, 0.000f, 0.000f}},
             {{-0.5f,  0.5f}, {0.754f, 0.070f, 0.121f}},

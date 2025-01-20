@@ -23,9 +23,9 @@ namespace cup
         Window(Window&&) = delete;
         Window& operator=(Window&&) = delete;
 
-        inline bool shouldClose() { return glfwWindowShouldClose(window_); }
-        inline bool wasResized() { return framebufferResized; }
-        inline void resetResizedFlag() { framebufferResized = false; }
+        bool shouldClose() const { return glfwWindowShouldClose(window_); }
+        bool wasResized() const { return framebufferResized; }
+        void resetResizedFlag() { framebufferResized = false; }
         
         // extent in pixel
         VkExtent2D extent();

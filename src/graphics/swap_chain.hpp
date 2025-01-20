@@ -1,7 +1,7 @@
 #pragma once
 
-#include "graphics/device.hpp"
-#include "graphics/window.hpp"
+#include "device.hpp"
+#include "window.hpp"
 #include <cstdint>
 #include <vector>
 #include <vulkan/vulkan_core.h>
@@ -13,13 +13,13 @@ namespace cup
         SwapChain(Device& device, Window& window); 
         ~SwapChain();
 
-        VkResult acquireNextImage(uint32_t currentFrame, uint32_t* imageIndex);
-        VkResult submitCommandBuffer(uint32_t currentFrame, VkCommandBuffer commandBuffer, uint32_t imageIndex);
-        bool fencesFinished();
+        VkResult acquireNextImage(uint32_t* imageIndex);
+        VkResult submitCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+        bool fencesFinished() const;
 
-        const VkRenderPass renderPass() { return renderPass_; }
+        VkRenderPass renderPass() const { return renderPass_; }
         const std::vector<VkFramebuffer>& framebuffers() { return framebuffers_; }
-        const VkExtent2D extent() const { return extent_; }
+        VkExtent2D extent() const { return extent_; }
 
         void recreateSwapChain();
 
@@ -42,6 +42,7 @@ namespace cup
         Window& window;
 
         VkSwapchainKHR swapChain;
+
         std::vector<VkImage> images;
         std::vector<VkImageView> imageViews;
 
@@ -54,5 +55,7 @@ namespace cup
         std::vector<VkSemaphore> imageAvailableSemaphores;
         std::vector<VkSemaphore> renderFinishedSemaphores;
         std::vector<VkFence> inFlightFences;
+
+        size_t currentFrame = 0;
     };
 }

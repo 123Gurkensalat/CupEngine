@@ -33,7 +33,7 @@ void WindowManager::run()
         for (int i = 0; i < windowsCount; i++) {
             if (renderers[i] == nullptr) continue;
             if (windows[i]->status == Window::CLOSED) continue;
-            renderers[i]->drawFrame();
+            renderers[i]->draw();
             if (windows[i]->status == Window::CLOSING) {
                 windows[i]->status = Window::CLOSED;
             }
@@ -62,8 +62,8 @@ void WindowManager::run()
 void WindowManager::createMainWindow()
 {
     windows.push_back(new Window(instance, "Main"));
-    device = std::make_unique<Device>(instance, mainWindow());
-    renderers.push_back(new Renderer(*device.get(), mainWindow()));
+    device = std::make_unique<Device>(instance, *windows[0]);
+    renderers.push_back(new Renderer(*device.get(), *windows[0]));
     windowsCount += 1;
 }
 
