@@ -10,7 +10,7 @@ using cup::Renderer;
 
 Renderer::Renderer(cup::Device& device, cup::Window& window) : device(device), window(window), swapChain(device, window)
 {
-    QueueFamilyIndices queueFamilyIndices = device.getPhysicalQueueFamilies();
+    const auto& queueFamilyIndices = device.physicalQueueFamilies();
     createPipeline();
     createCommandPool(queueFamilyIndices.graphicsFamily.value(), &graphicsCommandPool);
     createCommandPool(queueFamilyIndices.transferFamily.value(), &transferCommandPool);

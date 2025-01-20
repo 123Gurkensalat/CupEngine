@@ -1,11 +1,10 @@
 #include "device.hpp"
-#include "graphics/window.hpp"
+#include "window.hpp"
 
 #include <cstdint>
 #include <map>
 #include <set>
 #include <stdexcept>
-#include <utility>
 #include <vector>
 
 #include <vulkan/vulkan_core.h>
@@ -55,7 +54,7 @@ void Device::pickPhysicalDevice()
     }
 }
 
-uint32_t Device::ratePhysicalDeviceSuitability(VkPhysicalDevice physicalDevice)
+uint32_t Device::ratePhysicalDeviceSuitability(VkPhysicalDevice physicalDevice) const
 {
     uint32_t score = 0;
 
@@ -81,7 +80,7 @@ uint32_t Device::ratePhysicalDeviceSuitability(VkPhysicalDevice physicalDevice)
         return 0;
 
     // optional
-    if (indices.presentFamily == indices.graphicsFamily)
+    if (indices.presentFamily != indices.graphicsFamily)
         score += 10;
 
     if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
@@ -92,9 +91,13 @@ uint32_t Device::ratePhysicalDeviceSuitability(VkPhysicalDevice physicalDevice)
     return score;
 }
 
-QueueFamilyIndices Device::findQueueFamilies(VkPhysicalDevice physicalDevice)
+QueueFamilyIndices& Device::findQueueFamilies(VkPhysicalDevice physicalDevice) const
 {
-    QueueFamilyIndices indices;
+    static QueueFamilyIndices indices;
+    static bool firstTime = true;
+
+    if (!firstTime) return indices;
+
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
 
@@ -129,10 +132,11 @@ QueueFamilyIndices Device::findQueueFamilies(VkPhysicalDevice physicalDevice)
         indices.transferFamily = indices.graphicsFamily;
     }
 
+    firstTime = false;
     return indices;
 }
 
-bool Device::checkDeviceExtensionSupport(VkPhysicalDevice physicalDevice) 
+bool Device::checkDeviceExtensionSupport(VkPhysicalDevice physicalDevice) const
 {
     uint32_t extensionCount;
     vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, nullptr);
@@ -149,7 +153,7 @@ bool Device::checkDeviceExtensionSupport(VkPhysicalDevice physicalDevice)
     return requiredExtensions.empty();
 }
 
-SwapChainSupportDetails Device::querySwapChainSupport(VkPhysicalDevice physicalDevice) 
+SwapChainSupportDetails Device::querySwapChainSupport(VkPhysicalDevice physicalDevice) const
 {
     SwapChainSupportDetails details;
 
@@ -195,9 +199,7 @@ void Device::createLogicalDevice() {
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueInfos.size());
     createInfo.pQueueCreateInfos = queueInfos.data();
-
     createInfo.pEnabledFeatures = &deviceFeatures;
-    
     createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
@@ -222,9 +224,9 @@ void Device::createBuffer(
         VkBufferUsageFlags usage, 
         VkMemoryPropertyFlags properties, 
         VkBuffer* buffer, 
-        VkDeviceMemory* bufferMemory)
+        VkDeviceMemory* bufferMemory) const
 {
-    auto queueFamily = getPhysicalQueueFamilies();
+    const auto& queueFamily = physicalQueueFamilies();
     uint32_t queueFamilyIndices[] = {queueFamily.graphicsFamily.value(), queueFamily.transferFamily.value()};
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -232,7 +234,7 @@ void Device::createBuffer(
     bufferInfo.usage = usage;
 
     if (queueFamily.hasDedicatedTransferFamiliy()) {
-        bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+        bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT; // TODO: change this to exclusive and change ownership
         bufferInfo.queueFamilyIndexCount = 2;
         bufferInfo.pQueueFamilyIndices = queueFamilyIndices;
     } else {
@@ -240,7 +242,7 @@ void Device::createBuffer(
     }
 
     if (vkCreateBuffer(device_, &bufferInfo, nullptr, buffer) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create vertex Buffer!");
+        throw std::runtime_error("failed to create Buffer!");
     }
 
     VkMemoryRequirements memRequirements;
@@ -262,7 +264,7 @@ void Device::copyBuffer(
         VkDeviceSize size, 
         VkBuffer srcBuffer, 
         VkBuffer dstBuffer, 
-        VkCommandBuffer commandBuffer) 
+        VkCommandBuffer commandBuffer) const
 {
     VkBufferCopy copyRegion{};
     copyRegion.srcOffset = 0;
@@ -271,7 +273,7 @@ void Device::copyBuffer(
     vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 }
 
-uint32_t Device::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) 
+uint32_t Device::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const
 {
     VkPhysicalDeviceMemoryProperties memProperties{};
     vkGetPhysicalDeviceMemoryProperties(physicalDevice_, &memProperties);

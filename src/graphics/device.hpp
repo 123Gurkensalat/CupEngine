@@ -1,11 +1,13 @@
 #pragma once
 
-#include "graphics/instance.hpp"
+#include "instance.hpp"
 #include "window.hpp"
+
 #include <cstdint>
 #include <optional>
 #include <set>
 #include <vulkan/vulkan_core.h>
+
 namespace cup 
 {
     struct QueueFamilyIndices 
@@ -65,41 +67,40 @@ namespace cup
             VkBufferUsageFlags usage, 
             VkMemoryPropertyFlags properties, 
             VkBuffer* buffer, 
-            VkDeviceMemory* bufferMemory);        
+            VkDeviceMemory* bufferMemory) const;        
 
         void copyBuffer(
             VkDeviceSize size, 
             VkBuffer srcBuffer, 
             VkBuffer dstBuffer, 
-            VkCommandBuffer commandBuffer);
+            VkCommandBuffer commandBuffer) const;
 
-        VkCommandBuffer beginTransferCommands();
+        VkDevice device() const { return device_; }
+        VkQueue graphicsQueue() const {return graphicsQueue_;}
+        VkQueue presentQueue() const { return presentQueue_; }
+        VkQueue transferQueue() const { return transferQueue_; }
 
-        inline VkDevice device() const { return device_; }
-        inline VkQueue graphicsQueue() const {return graphicsQueue_;}
-        inline VkQueue presentQueue() const { return presentQueue_; }
-        inline VkQueue transferQueue() const { return transferQueue_; }
-
-        inline QueueFamilyIndices getPhysicalQueueFamilies() { return findQueueFamilies(physicalDevice_); }
-        inline SwapChainSupportDetails getSwapChainSupport() { return querySwapChainSupport(physicalDevice_); }
+        const QueueFamilyIndices& physicalQueueFamilies() const { return findQueueFamilies(physicalDevice_); }
+        SwapChainSupportDetails swapChainSupport() const { return querySwapChainSupport(physicalDevice_); }
 
     private:
         void pickPhysicalDevice();
         void createLogicalDevice();
 
-        uint32_t ratePhysicalDeviceSuitability(VkPhysicalDevice physicalDevice);
-        QueueFamilyIndices findQueueFamilies(VkPhysicalDevice physicalDevice);
-        bool checkDeviceExtensionSupport(VkPhysicalDevice physicalDevice);
+        uint32_t ratePhysicalDeviceSuitability(VkPhysicalDevice physicalDevice) const;
+        QueueFamilyIndices& findQueueFamilies(VkPhysicalDevice physicalDevice) const;
+        bool checkDeviceExtensionSupport(VkPhysicalDevice physicalDevice) const;
 
-        SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice physicalDevice);
+        SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice physicalDevice) const;
 
-        uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+        uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
 
-        Instance& instance;
-        Window& window;
+        const Instance& instance;
+        const Window& window;
 
-        VkPhysicalDevice physicalDevice_ = VK_NULL_HANDLE;
+        VkPhysicalDevice physicalDevice_;
         VkDevice device_;
+
         VkQueue graphicsQueue_;
         VkQueue presentQueue_;
         VkQueue transferQueue_;

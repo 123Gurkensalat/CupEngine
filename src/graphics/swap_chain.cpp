@@ -70,7 +70,7 @@ void SwapChain::recreateSwapChain() {
 
 void SwapChain::createSwapChain() 
 {
-    auto swapChainSupport = device.getSwapChainSupport();
+    auto swapChainSupport = device.swapChainSupport();
 
     VkSurfaceFormatKHR surfaceFormat = chooseSurfaceFormat(swapChainSupport.formats);
     VkPresentModeKHR presentMode = choosePresentMode(swapChainSupport.presentModes);
@@ -94,7 +94,7 @@ void SwapChain::createSwapChain()
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    auto indices = device.getPhysicalQueueFamilies();
+    const auto& indices = device.physicalQueueFamilies();
     uint32_t* queueFamilyIndices = indices.data();
 
     if (indices.graphicsFamily != indices.presentFamily) {
