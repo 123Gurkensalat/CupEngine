@@ -75,6 +75,15 @@ namespace cup
             VkBuffer dstBuffer, 
             VkCommandBuffer commandBuffer) const;
 
+        void createImage(
+            VkExtent3D extent,
+            VkFormat format,
+            VkImageTiling tiling,
+            VkImageUsageFlags usage,
+            VkMemoryPropertyFlags properties,
+            VkImage* image,
+            VkDeviceMemory* imageMemory) const;
+
         VkDevice device() const { return device_; }
         VkQueue graphicsQueue() const {return graphicsQueue_;}
         VkQueue presentQueue() const { return presentQueue_; }

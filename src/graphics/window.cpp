@@ -34,7 +34,7 @@ void Window::createSurface()
     }
 }
 
-VkExtent2D Window::extent() 
+VkExtent2D Window::extent() const 
 {
     int width, height;
     glfwGetFramebufferSize(window_, &width, &height);

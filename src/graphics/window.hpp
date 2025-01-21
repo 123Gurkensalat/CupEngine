@@ -28,7 +28,7 @@ namespace cup
         void resetResizedFlag() { framebufferResized = false; }
         
         // extent in pixel
-        VkExtent2D extent();
+        VkExtent2D extent() const;
         VkSurfaceKHR surface() const { return surface_; }
 
         static constexpr uint32_t WIDTH = 800; 

@@ -24,10 +24,12 @@ namespace cup
         ~Model();
 
         Model(const Model&) = delete;
-        Model &operator=(const Model&) = delete;
+        Model& operator=(const Model&) = delete;
+        Model(Model&&) = delete;
+        Model& operator=(Model&&) = delete;
 
-        void bind(VkCommandBuffer commandBuffer);
-        void draw(VkCommandBuffer commandBuffer);
+        void bind(VkCommandBuffer commandBuffer) const;
+        void draw(VkCommandBuffer commandBuffer) const;
 
     private:
         void createDeviceBuffer(

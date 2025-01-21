@@ -13,7 +13,7 @@ namespace cup
         SwapChain(Device& device, Window& window); 
         ~SwapChain();
 
-        VkResult acquireNextImage(uint32_t* imageIndex);
+        VkResult acquireNextImage(uint32_t* imageIndex) const;
         VkResult submitCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
         bool fencesFinished() const;
 
@@ -34,9 +34,9 @@ namespace cup
         void createSyncObjects();
         void cleanupSwapChain();
 
-        VkSurfaceFormatKHR chooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-        VkPresentModeKHR choosePresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-        VkExtent2D chooseExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+        VkSurfaceFormatKHR chooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) const;
+        VkPresentModeKHR choosePresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) const;
+        VkExtent2D chooseExtent(const VkSurfaceCapabilitiesKHR& capabilities) const;
        
         Device& device;
         Window& window;

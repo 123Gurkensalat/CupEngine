@@ -87,7 +87,7 @@ std::array<VkVertexInputAttributeDescription, 2> Vertex::getAttributeDescription
     return attributeDescriptions;
 }
         
-void Model::bind(VkCommandBuffer commandBuffer) 
+void Model::bind(VkCommandBuffer commandBuffer) const
 {
     VkBuffer vertexBuffers[] = {vertexBuffer};
     VkDeviceSize offsets[] = {0};
@@ -95,7 +95,7 @@ void Model::bind(VkCommandBuffer commandBuffer)
     vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
 }
 
-void Model::draw(VkCommandBuffer commandBuffer)
+void Model::draw(VkCommandBuffer commandBuffer) const
 {
     vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 }

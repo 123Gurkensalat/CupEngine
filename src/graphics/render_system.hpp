@@ -5,6 +5,7 @@
 #include "pipeline.hpp"
 #include <memory>
 #include <vulkan/vulkan_core.h>
+
 namespace cup 
 {
     class RenderSystem {
@@ -12,7 +13,7 @@ namespace cup
         RenderSystem(Device& device, Renderer& renderer);
         ~RenderSystem();
 
-        void render(VkCommandBuffer commandBuffer, size_t currentFrame, float aspectRatio);
+        void render(VkCommandBuffer commandBuffer, size_t currentFrame, float aspectRatio) const;
 
     private:
         struct UniformBufferObject {

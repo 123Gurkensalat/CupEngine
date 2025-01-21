@@ -20,6 +20,7 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/external/utils
+    ${PROJECT_SOURCE_DIR}/external
 )
 
 target_link_libraries(${PROJECT_NAME} glfw ${Vulkan_LIBRARIES} ecs)

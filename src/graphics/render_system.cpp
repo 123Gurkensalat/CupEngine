@@ -2,8 +2,9 @@
 #include "model.hpp"
 #include "swap_chain.hpp"
 #include "renderer.hpp"
-#include <glm/ext/matrix_clip_space.hpp>
-#include <glm/ext/matrix_transform.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
@@ -156,14 +157,23 @@ void RenderSystem::createUniformBuffers()
     }
 }
 
-void RenderSystem::render(VkCommandBuffer commandBuffer, size_t currentFrame, float aspectRatio) 
+void RenderSystem::render(VkCommandBuffer commandBuffer, size_t currentFrame, float aspectRatio) const
 {
     pipeline->bind(commandBuffer);
 
     static auto startTime = std::chrono::high_resolution_clock::now();
-
+    static auto lastTime = startTime;
+    static int counter = 0;
     auto currentTime = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+    counter++;
+
+    // fps counter
+    if (std::chrono::duration<float, std::chrono::seconds::period>(currentTime - lastTime).count() > 1) {
+        std::cout << "FPS:" << counter << '\n';
+        counter = 0;
+        lastTime = currentTime;
+    }
 
     UniformBufferObject ubo;
     ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f),glm::vec3(0.0f, 0.0f, 1.0f));

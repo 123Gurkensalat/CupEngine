@@ -98,9 +98,8 @@ VkShaderModule Pipeline::createShaderModule (const std::vector<char>& code)
     return shaderModule;
 }
 
-
-
-void Pipeline::bind(VkCommandBuffer commandBuffer) {
+void Pipeline::bind(VkCommandBuffer commandBuffer) const 
+{
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_);
 }
 

@@ -38,7 +38,7 @@ namespace cup
 
         VkPipeline pipeline() const { return pipeline_; }
 
-        void bind(VkCommandBuffer);
+        void bind(VkCommandBuffer) const;
 
     private:
         void createPipeline(const PipelineConfigInfo& configInfo);
