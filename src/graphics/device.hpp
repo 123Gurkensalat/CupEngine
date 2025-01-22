@@ -84,7 +84,10 @@ namespace cup
             VkImage* image,
             VkDeviceMemory* imageMemory) const;
 
+        void createImageView(VkImage image, VkFormat format, VkImageView* imageView);
+
         VkDevice device() const { return device_; }
+        const VkPhysicalDeviceProperties& properties() const;
         VkQueue graphicsQueue() const {return graphicsQueue_;}
         VkQueue presentQueue() const { return presentQueue_; }
         VkQueue transferQueue() const { return transferQueue_; }

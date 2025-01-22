@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <iostream>
 #include <map>
+#include <optional>
 #include <set>
 #include <stdexcept>
 #include <vector>
@@ -49,7 +50,7 @@ void Device::pickPhysicalDevice()
 
     // select device
     if (candidates.rbegin()->first > 0) {
-        physicalDevice_ = candidates.rbegin()->second;
+    physicalDevice_ = candidates.rbegin()->second;
     } else {
         throw std::runtime_error("failed to find a suitable GPU");
     }
@@ -80,6 +81,10 @@ uint32_t Device::ratePhysicalDeviceSuitability(VkPhysicalDevice physicalDevice) 
     if (swapChainDetails.presentModes.empty() || swapChainDetails.formats.empty()) 
         return 0;
 
+    if (!deviceFeatures.samplerAnisotropy) 
+        return 0;
+    
+    
     // optional
     if (indices.presentFamily != indices.graphicsFamily)
         score += 10;
@@ -195,6 +200,7 @@ void Device::createLogicalDevice() {
     }
     
     VkPhysicalDeviceFeatures deviceFeatures{};
+    deviceFeatures.samplerAnisotropy = VK_TRUE;
 
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -218,6 +224,13 @@ void Device::createLogicalDevice() {
     vkGetDeviceQueue(device_, indices.graphicsFamily.value(), 0, &graphicsQueue_);
     vkGetDeviceQueue(device_, indices.presentFamily.value(), 0, &presentQueue_);
     vkGetDeviceQueue(device_, indices.transferFamily.value(), 0, &transferQueue_);
+}
+
+const VkPhysicalDeviceProperties& Device::properties() const{
+    static VkPhysicalDeviceProperties props;
+    static bool firstTime = true;
+    if (firstTime) vkGetPhysicalDeviceProperties(physicalDevice_, &props);
+    return props;
 }
 
 void Device::createBuffer(
@@ -314,6 +327,24 @@ void Device::createImage(
     }
 
     vkBindImageMemory(device_, *image, *imageMemory, 0);
+}
+
+void Device::createImageView(VkImage image, VkFormat format, VkImageView* imageView)
+{
+    VkImageViewCreateInfo viewInfo{};
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.image = image;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format = format;
+    viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    viewInfo.subresourceRange.baseMipLevel = 0;
+    viewInfo.subresourceRange.levelCount = 1;
+    viewInfo.subresourceRange.baseArrayLayer = 0;
+    viewInfo.subresourceRange.layerCount = 1;
+
+    if (vkCreateImageView(device_, &viewInfo, nullptr, imageView) != VK_SUCCESS) {
+        throw std::runtime_error("could not create image view!");
+    }
 }
 
 

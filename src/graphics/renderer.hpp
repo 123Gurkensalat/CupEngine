@@ -33,6 +33,8 @@ namespace cup
         void createCommandPool(uint32_t queueFamilyIndex, VkCommandPool* commandPool);
         void createCommandBuffer();
         void createTextureImage();
+        void createTextureImageView();
+        void createTextureSampler();
 
         VkCommandBuffer beginFrame();
         void endFrame();
@@ -56,6 +58,8 @@ namespace cup
 
         VkImage textureImage;
         VkDeviceMemory textureImageMemory;
+        VkImageView textureImageView;
+        VkSampler textureSampler;
 
         uint32_t currentImageIndex = 0; 
         uint32_t currentFrame = 0;

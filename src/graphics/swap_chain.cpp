@@ -233,26 +233,7 @@ void SwapChain::createImageViews()
     imageViews.resize(images.size());
 
     for (size_t i = 0; i < images.size(); i++) {
-        VkImageViewCreateInfo createInfo{};
-        createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        createInfo.image = images[i];
-        createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        createInfo.format = imageFormat_;
-
-        createInfo.components.r = VK_COMPONENT_SWIZZLE_R;
-        createInfo.components.g = VK_COMPONENT_SWIZZLE_G;
-        createInfo.components.b = VK_COMPONENT_SWIZZLE_B;
-        createInfo.components.a = VK_COMPONENT_SWIZZLE_A;
-
-        createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        createInfo.subresourceRange.baseMipLevel = 0;
-        createInfo.subresourceRange.levelCount = 1;
-        createInfo.subresourceRange.baseArrayLayer = 0;
-        createInfo.subresourceRange.layerCount = 1;
-
-        if (vkCreateImageView(device.device(), &createInfo, nullptr, &imageViews[i]) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create image views!");
-        }
+        device.createImageView(images[i], imageFormat_, &imageViews[i]);
     }
 }
         
