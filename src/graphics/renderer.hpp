@@ -32,18 +32,12 @@ namespace cup
     private:
         void createCommandPool(uint32_t queueFamilyIndex, VkCommandPool* commandPool);
         void createCommandBuffer();
-        void createTextureImage();
-        void createTextureImageView();
-        void createTextureSampler();
 
         VkCommandBuffer beginFrame();
         void endFrame();
 
         void beginSwapChainRenderPass(VkCommandBuffer commandBuffer);
         void endSwapChainRenderPass(VkCommandBuffer commandBuffer);
-
-        void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
-        void copyBufferToImage(VkBuffer buffer, VkImage image, VkExtent3D extent);
 
         Device& device;
         Window& window;
@@ -56,10 +50,6 @@ namespace cup
         
         std::unique_ptr<RenderSystem> renderSystem;
 
-        VkImage textureImage;
-        VkDeviceMemory textureImageMemory;
-        VkImageView textureImageView;
-        VkSampler textureSampler;
 
         uint32_t currentImageIndex = 0; 
         uint32_t currentFrame = 0;

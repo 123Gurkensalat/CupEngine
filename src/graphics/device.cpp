@@ -347,7 +347,6 @@ void Device::createImageView(VkImage image, VkFormat format, VkImageView* imageV
     }
 }
 
-
 uint32_t Device::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const
 {
     VkPhysicalDeviceMemoryProperties memProperties{};

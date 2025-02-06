@@ -30,7 +30,15 @@ namespace cup
         void createDescriptorSets();
         void createUniformBuffers(); 
 
+        void createTextureImage();
+        void createTextureImageView();
+        void createTextureSampler();
+
+        void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+        void copyBufferToImage(VkBuffer buffer, VkImage image, VkExtent3D extent);
+
         Device& device;
+        Renderer& renderer;
 
         VkDescriptorSetLayout descriptorSetLayout;
         VkPipelineLayout pipelineLayout;
@@ -42,5 +50,10 @@ namespace cup
         std::vector<VkBuffer> uniformBuffers;
         std::vector<VkDeviceMemory> uniformBuffersMemory;
         std::vector<void*> uniformBuffersMapped;
+
+        VkImage textureImage;
+        VkDeviceMemory textureImageMemory;
+        VkImageView textureImageView;
+        VkSampler textureSampler;
     };
 }

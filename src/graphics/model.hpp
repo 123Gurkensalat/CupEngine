@@ -15,9 +15,10 @@ namespace cup
         struct Vertex {
             glm::vec2 position;
             glm::vec3 color;
+            glm::vec2 texCoord;
 
             static VkVertexInputBindingDescription getBindingDescription();
-            static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions();
+            static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions();
         };
 
         Model(Device& device, Renderer& renderer);
@@ -48,11 +49,11 @@ namespace cup
         VkDeviceMemory indexBufferMemory;
        
         const std::vector<Vertex> vertices = {
-            {{-0.5f, -0.5f}, {0.469f, 0.000f, 0.000f}},
-            {{-0.5f,  0.5f}, {0.754f, 0.070f, 0.121f}},
-            {{ 0.0f,  0.0f}, {0.992f, 0.941f, 0.835f}},
-            {{ 0.5f,  0.5f}, {0.000f, 0.188f, 0.286f}},
-            {{ 0.5f, -0.5f}, {0.400f, 0.608f, 0.737f}}
+            {{-0.5f, -0.5f}, {0.469f, 0.000f, 0.000f}, {1.0f, 0.0f}},
+            {{-0.5f,  0.5f}, {0.754f, 0.070f, 0.121f}, {1.0f, 1.0f}},
+            {{ 0.0f,  0.0f}, {0.992f, 0.941f, 0.835f}, {0.5f, 0.5f}},
+            {{ 0.5f,  0.5f}, {0.000f, 0.188f, 0.286f}, {0.0f, 1.0f}},
+            {{ 0.5f, -0.5f}, {0.400f, 0.608f, 0.737f}, {0.0f, 0.0f}}
         };
 
         const std::vector<uint16_t> indices = {

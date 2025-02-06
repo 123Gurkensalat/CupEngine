@@ -8,7 +8,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Vulkan REQUIRED)
 find_package(glfw3 3.3 REQUIRED)
 
-add_subdirectory(external)
+# add_subdirectory(external)
 
 # finde files recursively
 file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp )
@@ -19,11 +19,10 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${PROJECT_SOURCE_DIR}/src
-    ${PROJECT_SOURCE_DIR}/external/utils
     ${PROJECT_SOURCE_DIR}/external
 )
 
-target_link_libraries(${PROJECT_NAME} glfw ${Vulkan_LIBRARIES} ecs)
+target_link_libraries(${PROJECT_NAME} glfw ${Vulkan_LIBRARIES})
 
 ###############################################################################
 # Shader compiling
