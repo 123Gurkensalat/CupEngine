@@ -8,9 +8,9 @@ namespace cup {
     struct Transform {
         static constexpr ecs::componentId id = 0;
 
-        glm::vec3 position;
-        glm::vec2 scale;
-        float rotation;
+        glm::vec3 position{0, 0, 0};
+        glm::vec2 scale{1, 1};
+        float rotation{0};
 
         glm::mat4 mat(){
             auto s = glm::sin(rotation);

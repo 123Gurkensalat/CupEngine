@@ -21,7 +21,8 @@ namespace cup
             glm::mat4 view;
             glm::mat4 proj;
         };
-
+        
+        // move pool creation to device or resource manager, helper functions somewhere else too
         void createDescriptorSetLayout();
         void createPipelineLayout();
         void createPipeline(VkRenderPass renderPass);

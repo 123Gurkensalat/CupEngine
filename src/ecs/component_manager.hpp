@@ -44,7 +44,6 @@ namespace cup::ecs {
         std::unordered_map<componentId, archetypeIdSet> component_archetypes; // what component is in what archetype
     };
 
-#define ECS_IMPLEMENTATION
 #ifdef ECS_IMPLEMENTATION
 
     void ComponentManager::updateComponentArchetypesMap(Archetype& newArchetype) 

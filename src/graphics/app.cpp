@@ -2,7 +2,7 @@
 #include <functional>
 
 #define ECS_IMPLEMENTATION
-#include "ecs/src/ecs.hpp"
+#include "ecs/ecs.hpp"
 #include "ecs/components/transform.hpp"
 #include <iostream>
 

@@ -112,7 +112,6 @@ void RenderSystem::createDescriptorPool()
     poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     poolSizes[1].descriptorCount = SwapChain::MAX_FRAMES_IN_FLIGHT;
 
-
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
@@ -126,7 +125,7 @@ void RenderSystem::createDescriptorPool()
 
 void RenderSystem::createDescriptorSets() 
 {
-    std::vector<VkDescriptorSetLayout> layouts(SwapChain::MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
+    std::vector<VkDescriptorSetLayout> layouts{SwapChain::MAX_FRAMES_IN_FLIGHT, descriptorSetLayout};
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     allocInfo.descriptorPool = descriptorPool;
@@ -282,6 +281,7 @@ void RenderSystem::createTextureSampler()
         throw std::runtime_error("failed to create texture sampler!");
     }
 }
+
 void RenderSystem::render(VkCommandBuffer commandBuffer, size_t currentFrame, float aspectRatio) const
 {
     pipeline->bind(commandBuffer);
