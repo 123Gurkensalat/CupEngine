@@ -31,18 +31,6 @@ namespace cup::ecs {
         ComponentManager componentManager{};
     };
 
-#ifdef ECS_IMPLEMENTATION
-    entityId ECS::createEntity() 
-    {
-        return entityManager.createEntity();
-    }
-
-    void ECS::destroyEntity(entityId entity)
-    {
-        componentManager.removeEntity(entity);
-        entityManager.destroyEntity(entity);
-    }
-
     template<typename T>
     T& ECS::addComponent(entityId entity) 
     {
@@ -66,5 +54,4 @@ namespace cup::ecs {
     {
         componentManager.forEach(func);
     }
-#endif
 }

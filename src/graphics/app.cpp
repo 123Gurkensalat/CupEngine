@@ -1,7 +1,6 @@
 #include "app.hpp"
 #include <functional>
 
-#define ECS_IMPLEMENTATION
 #include "ecs/ecs.hpp"
 #include "ecs/components/transform.hpp"
 #include <iostream>
@@ -15,6 +14,7 @@
 #include <GLFW/glfw3.h>
 
 using cup::App;
+using namespace cup::ecs;
 
 void App::run() 
 {

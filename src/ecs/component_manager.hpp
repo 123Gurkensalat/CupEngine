@@ -44,27 +44,11 @@ namespace cup::ecs {
         std::unordered_map<componentId, archetypeIdSet> component_archetypes; // what component is in what archetype
     };
 
-#ifdef ECS_IMPLEMENTATION
-
-    void ComponentManager::updateComponentArchetypesMap(Archetype& newArchetype) 
-    {
-        for (componentId i = 0; i < MAX_COMPONENT_TYPES; i++) {
-            if (newArchetype.id() >> i)
-            component_archetypes[i].insert({newArchetype.id()});
-        }
-    }
-
-    void ComponentManager::removeEntity(entityId entity) 
-    {
-        auto& record = entity_archetypes.at(entity);
-        record.archetype.get().deleteEntry(record.row);
-        entity_archetypes.erase(entity);
-    }
-
     template<typename T>
     T& ComponentManager::addComponent(entityId entity) 
     {
         assert(!hasComponent<T>(entity) && "entity cannot have a component twice!");
+
         // find archtype of entity
         if (entity_archetypes.find(entity) == entity_archetypes.end()) {
             // entity has no components/archetype
@@ -171,6 +155,4 @@ namespace cup::ecs {
             archetypes[id].forEach(func);
         }
     }
-
-#endif
 }
