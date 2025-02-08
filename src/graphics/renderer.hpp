@@ -13,7 +13,7 @@ namespace cup
     class Renderer {
     public:
         Renderer(Device& device, Window& window);
-        ~Renderer();
+        ~Renderer() = default;
 
         Renderer(const Renderer&) = delete;
         Renderer& operator=(const Renderer&) = delete;
@@ -23,9 +23,6 @@ namespace cup
         const SwapChain& swapChain() const { return swapChain_; }
 
         void draw();
-
-        VkCommandBuffer beginTransferCommands();
-        void endTransferCommands(VkCommandBuffer);
 
         bool finished() const { return swapChain_.fencesFinished(); }
 
@@ -44,12 +41,9 @@ namespace cup
 
         SwapChain swapChain_{device, window};
 
-        VkCommandPool graphicsCommandPool;
-        VkCommandPool transferCommandPool;
         std::vector<VkCommandBuffer> commandBuffers; 
         
         std::unique_ptr<RenderSystem> renderSystem;
-
 
         uint32_t currentImageIndex = 0; 
         uint32_t currentFrame = 0;

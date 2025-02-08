@@ -1,5 +1,5 @@
 #include "pipeline.hpp"
-#include "model.hpp"
+#include "graphics/sprite.hpp"
 #include "utils/file_operations.h"
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
@@ -45,8 +45,8 @@ void Pipeline::createPipeline(const PipelineConfigInfo& configInfo)
     shaderStages[1].pNext = nullptr;
     shaderStages[1].pSpecializationInfo = nullptr;
 
-    auto bindingDescription = Model::Vertex::getBindingDescription();
-    auto attributeDescriptions = Model::Vertex::getAttributeDescriptions();
+    auto bindingDescription = Sprite::Vertex::getBindingDescription();
+    auto attributeDescriptions = Sprite::Vertex::getAttributeDescriptions();
 
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -122,7 +122,7 @@ void Pipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo)
     configInfo.rasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
     configInfo.rasterizationInfo.polygonMode = VK_POLYGON_MODE_FILL;
     configInfo.rasterizationInfo.lineWidth = 1.0f;
-    configInfo.rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+    configInfo.rasterizationInfo.cullMode = VK_CULL_MODE_NONE;
     configInfo.rasterizationInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     configInfo.rasterizationInfo.depthBiasEnable = VK_FALSE;
     configInfo.rasterizationInfo.depthBiasConstantFactor = 0.0f;

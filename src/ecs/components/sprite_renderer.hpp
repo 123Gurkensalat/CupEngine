@@ -1,14 +1,14 @@
 #pragma once
 
 #include "ecs/typedefs.hpp"
-#include "graphics/model.hpp"
+#include "graphics/sprite.hpp"
+#include <functional>
 #include <glm/glm.hpp>
-#include <memory>
 
 namespace cup {
     struct SpriteRenderer {
         static constexpr ecs::componentId id = 1;
         glm::vec3 color{};
-        std::shared_ptr<Model> model;
+        std::reference_wrapper<Sprite> sprite;
     };
 }

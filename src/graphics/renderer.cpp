@@ -13,30 +13,8 @@ using namespace cup;
 Renderer::Renderer(Device& device, Window& window) 
     : device(device), window(window), swapChain_(device, window)
 {
-    const auto& queueFamilyIndices = device.physicalQueueFamilies();
-    createCommandPool(queueFamilyIndices.graphicsFamily.value(), &graphicsCommandPool);
-    createCommandPool(queueFamilyIndices.transferFamily.value(), &transferCommandPool);
     createCommandBuffer();
-
     renderSystem = std::make_unique<RenderSystem>(device, *this);
-}
-
-Renderer::~Renderer()
-{
-    vkDestroyCommandPool(device.device(), graphicsCommandPool, nullptr);
-    vkDestroyCommandPool(device.device(), transferCommandPool, nullptr);
-}
-
-void Renderer::createCommandPool(uint32_t queueFamilyIndex, VkCommandPool* commandPool)
-{
-    VkCommandPoolCreateInfo commandPoolInfo{};
-    commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    commandPoolInfo.queueFamilyIndex = queueFamilyIndex;
-    
-    if (vkCreateCommandPool(device.device(), &commandPoolInfo, nullptr, commandPool) != VK_SUCCESS) {
-        throw std::runtime_error("could not create command pool!");
-    }
 }
 
 void Renderer::createCommandBuffer() 
@@ -45,7 +23,7 @@ void Renderer::createCommandBuffer()
 
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = graphicsCommandPool;
+    allocInfo.commandPool = device.graphicsCommandPool();
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
 
@@ -151,37 +129,3 @@ void Renderer::endSwapChainRenderPass(VkCommandBuffer commandBuffer)
     vkCmdEndRenderPass(commandBuffer);
 }
 
-VkCommandBuffer Renderer::beginTransferCommands()
-{
-    VkCommandBufferAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool = transferCommandPool;
-    allocInfo.commandBufferCount = 1;
-
-    VkCommandBuffer commandBuffer;
-    vkAllocateCommandBuffers(device.device(), &allocInfo, &commandBuffer);
-
-    VkCommandBufferBeginInfo beginInfo{};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-    vkBeginCommandBuffer(commandBuffer, &beginInfo);
-
-    return commandBuffer;
-}
-
-void Renderer::endTransferCommands(VkCommandBuffer commandBuffer) 
-{
-    vkEndCommandBuffer(commandBuffer);
-
-    VkSubmitInfo submitInfo{};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffer;
-
-    vkQueueSubmit(device.transferQueue(), 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(device.transferQueue());
-
-    vkFreeCommandBuffers(device.device(), transferCommandPool, 1, &commandBuffer);
-}

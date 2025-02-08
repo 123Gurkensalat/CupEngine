@@ -69,11 +69,17 @@ namespace cup
             VkBuffer* buffer, 
             VkDeviceMemory* bufferMemory) const;        
 
+        void createTransferBuffer(
+            VkDeviceSize size,
+            const void* data,
+            VkBuffer* dstBuffer, 
+            VkDeviceMemory* dstBufferMemory,
+            VkBufferUsageFlags usage) const;
+
         void copyBuffer(
             VkDeviceSize size, 
             VkBuffer srcBuffer, 
-            VkBuffer dstBuffer, 
-            VkCommandBuffer commandBuffer) const;
+            VkBuffer dstBuffer) const;
 
         void createImage(
             VkExtent3D extent,
@@ -84,13 +90,20 @@ namespace cup
             VkImage* image,
             VkDeviceMemory* imageMemory) const;
 
-        void createImageView(VkImage image, VkFormat format, VkImageView* imageView);
+        void createImageView(VkImage image, VkFormat format, VkImageView* imageView) const;
+
+        VkCommandBuffer beginTransferCommands() const;
+        void endTransferCommands(VkCommandBuffer commandBuffer) const;
 
         VkDevice device() const { return device_; }
         const VkPhysicalDeviceProperties& properties() const;
-        VkQueue graphicsQueue() const {return graphicsQueue_;}
+        VkQueue graphicsQueue() const { return graphicsQueue_; }
         VkQueue presentQueue() const { return presentQueue_; }
         VkQueue transferQueue() const { return transferQueue_; }
+
+        VkCommandPool graphicsCommandPool() const { return graphicsCommandPool_; }
+        VkCommandPool transferCommandPool() const { return transferCommandPool_; }
+        VkDescriptorPool descriptorPool() const { return descriptorPool_; }
 
         const QueueFamilyIndices& physicalQueueFamilies() const { return findQueueFamilies(physicalDevice_); }
         SwapChainSupportDetails swapChainSupport() const { return querySwapChainSupport(physicalDevice_); }
@@ -98,6 +111,8 @@ namespace cup
     private:
         void pickPhysicalDevice();
         void createLogicalDevice();
+        void createCommandPool(uint32_t queueFamilyIndex, VkCommandPool* commandPool);
+        void createDescriptorPool();
 
         uint32_t ratePhysicalDeviceSuitability(VkPhysicalDevice physicalDevice) const;
         QueueFamilyIndices& findQueueFamilies(VkPhysicalDevice physicalDevice) const;
@@ -116,5 +131,9 @@ namespace cup
         VkQueue graphicsQueue_;
         VkQueue presentQueue_;
         VkQueue transferQueue_;
+
+        VkCommandPool graphicsCommandPool_;
+        VkCommandPool transferCommandPool_;
+        VkDescriptorPool descriptorPool_;
     };
 }

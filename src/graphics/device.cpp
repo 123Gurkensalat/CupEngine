@@ -1,13 +1,15 @@
 #include "device.hpp"
 #include "window.hpp"
+#include "swap_chain.hpp"
 
 #include <cstdint>
-#include <iostream>
+#include <cstring>
 #include <map>
 #include <optional>
 #include <set>
 #include <stdexcept>
 #include <vector>
+#include <array>
 
 #include <vulkan/vulkan_core.h>
 
@@ -21,10 +23,17 @@ Device::Device(Instance& instance, Window& window) : instance(instance), window(
 {
     pickPhysicalDevice();
     createLogicalDevice();
+    auto queueFamily = physicalQueueFamilies();
+    createCommandPool(queueFamily.graphicsFamily.value(), &graphicsCommandPool_);
+    createCommandPool(queueFamily.transferFamily.value(), &transferCommandPool_);
+    createDescriptorPool();
 }
 
 Device::~Device() 
 {
+   vkDestroyDescriptorPool(device_, descriptorPool_, nullptr);
+    vkDestroyCommandPool(device_, graphicsCommandPool_, nullptr);
+    vkDestroyCommandPool(device_, transferCommandPool_, nullptr);
     vkDestroyDevice(device_, nullptr);
 }
 
@@ -233,6 +242,37 @@ const VkPhysicalDeviceProperties& Device::properties() const{
     return props;
 }
 
+void Device::createCommandPool(uint32_t queueFamilyIndex, VkCommandPool* commandPool)
+{
+    VkCommandPoolCreateInfo commandPoolInfo{};
+    commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    commandPoolInfo.queueFamilyIndex = queueFamilyIndex;
+    
+    if (vkCreateCommandPool(device_, &commandPoolInfo, nullptr, commandPool) != VK_SUCCESS) {
+        throw std::runtime_error("could not create command pool!");
+    }
+}
+
+void Device::createDescriptorPool() 
+{
+    std::array<VkDescriptorPoolSize, 2> poolSizes{};
+    poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSizes[0].descriptorCount = SwapChain::MAX_FRAMES_IN_FLIGHT;
+    poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    poolSizes[1].descriptorCount = SwapChain::MAX_FRAMES_IN_FLIGHT;
+
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+    poolInfo.pPoolSizes = poolSizes.data();
+    poolInfo.maxSets = SwapChain::MAX_FRAMES_IN_FLIGHT;
+
+    if (vkCreateDescriptorPool(device_, &poolInfo, nullptr, &descriptorPool_) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create descriptor pool!");
+    }
+}
+
 void Device::createBuffer(
         VkDeviceSize size, 
         VkBufferUsageFlags usage, 
@@ -274,17 +314,52 @@ void Device::createBuffer(
     vkBindBufferMemory(device_, *buffer, *bufferMemory, 0);
 }
 
+void Device::createTransferBuffer(
+        VkDeviceSize size, 
+        const void* data, 
+        VkBuffer* dstBuffer, 
+        VkDeviceMemory* dstBufferMemory, 
+        VkBufferUsageFlags usage) const
+{
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    createBuffer(
+        size, 
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+        &stagingBuffer,
+        &stagingBufferMemory);
+
+    void* datas;
+    vkMapMemory(device_, stagingBufferMemory, 0, size, 0, &datas);
+    memcpy(datas, data, static_cast<size_t>(size));
+    vkUnmapMemory(device_, stagingBufferMemory);
+
+    createBuffer(
+        size, 
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage, 
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
+        dstBuffer, 
+        dstBufferMemory);
+
+    copyBuffer(size, stagingBuffer, *dstBuffer);
+
+    vkDestroyBuffer(device_, stagingBuffer, nullptr);
+    vkFreeMemory(device_, stagingBufferMemory, nullptr);
+}
+
 void Device::copyBuffer(
         VkDeviceSize size, 
         VkBuffer srcBuffer, 
-        VkBuffer dstBuffer, 
-        VkCommandBuffer commandBuffer) const
+        VkBuffer dstBuffer) const
 {
+    VkCommandBuffer commandBuffer = beginTransferCommands();
     VkBufferCopy copyRegion{};
     copyRegion.srcOffset = 0;
     copyRegion.dstOffset = 0;
     copyRegion.size = size;
     vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+    endTransferCommands(commandBuffer);
 }
 
 void Device::createImage(
@@ -329,7 +404,7 @@ void Device::createImage(
     vkBindImageMemory(device_, *image, *imageMemory, 0);
 }
 
-void Device::createImageView(VkImage image, VkFormat format, VkImageView* imageView)
+void Device::createImageView(VkImage image, VkFormat format, VkImageView* imageView) const
 {
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -345,6 +420,41 @@ void Device::createImageView(VkImage image, VkFormat format, VkImageView* imageV
     if (vkCreateImageView(device_, &viewInfo, nullptr, imageView) != VK_SUCCESS) {
         throw std::runtime_error("could not create image view!");
     }
+}
+
+VkCommandBuffer Device::beginTransferCommands() const
+{
+    VkCommandBufferAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool = transferCommandPool_;
+    allocInfo.commandBufferCount = 1;
+
+    VkCommandBuffer commandBuffer;
+    vkAllocateCommandBuffers(device_, &allocInfo, &commandBuffer);
+
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+    return commandBuffer;
+}
+
+void Device::endTransferCommands(VkCommandBuffer commandBuffer) const
+{
+    vkEndCommandBuffer(commandBuffer);
+
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+
+    vkQueueSubmit(transferQueue_, 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(transferQueue_);
+
+    vkFreeCommandBuffers(device_, transferCommandPool_, 1, &commandBuffer);
 }
 
 uint32_t Device::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const
