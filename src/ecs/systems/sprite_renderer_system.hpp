@@ -2,15 +2,17 @@
 
 #include "ecs/ecs.hpp"
 #include "graphics/device.hpp"
-#include "graphics/pipeline.hpp"
+#include "graphics/render_system.hpp"
 #include <glm/glm.hpp>
 #include <vulkan/vulkan_core.h>
 
 namespace cup {
-    class SpriteRendererSystem {
+    class SpriteRendererSystem : protected RenderSystem {
     public:
-        SpriteRendererSystem(ecs::ECS& ecs, Device& device) : ecs{ecs}, device{device} {} 
-        void render();
+        SpriteRendererSystem(ecs::ECS& ecs, Device& device, VkRenderPass renderPass);
+        ~SpriteRendererSystem();
+        void render(VkCommandBuffer commandBuffer, float ascpectRatio);
+
     private:
         struct UniformBufferObject {
             glm::mat4 model;
@@ -18,12 +20,12 @@ namespace cup {
             glm::mat4 proj;
         };
         
-        void createDescriptorSetLayout();
-        void createPipelineLayout();
-        void createPipeline(VkRenderPass renderPass);
+        void createLayouts();
+        void createPipeline(VkRenderPass);
 
         void createDescriptorSets();
-        void createUniformBuffers(); 
+
+        void updateDescriptorSets(size_t currentFrame, VkDescriptorImageInfo& imageInfo) const;
 
         ecs::ECS& ecs;
         Device& device;
@@ -31,7 +33,6 @@ namespace cup {
         // pipeline infos
         VkDescriptorSetLayout descriptorSetLayout;
         VkPipelineLayout pipelineLayout;
-        std::unique_ptr<Pipeline> pipeline;
 
         // uniform buffers
         std::vector<VkDescriptorSet> descriptorSets;
@@ -39,6 +40,6 @@ namespace cup {
         std::vector<VkDeviceMemory> uniformBuffersMemory;
         std::vector<void*> uniformBuffersMapped;
 
-
+        uint32_t currentFrame = 0;
     };
 }

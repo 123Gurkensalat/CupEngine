@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
 
-using cup::Pipeline;
+using namespace cup;
 
 Pipeline::Pipeline(Device& device,  PipelineConfigInfo& configInfo)
     : device(device)
@@ -103,8 +103,10 @@ void Pipeline::bind(VkCommandBuffer commandBuffer) const
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_);
 }
 
-void Pipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo) 
+PipelineConfigInfo Pipeline::defaultPipelineConfigInfo() 
 {
+    PipelineConfigInfo configInfo{};
+
     //--- Input Assembler
     configInfo.inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     configInfo.inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -177,4 +179,6 @@ void Pipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo)
     configInfo.dynamicStateInfo.pDynamicStates = configInfo.dynamicStateEnables.data();
     configInfo.dynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(configInfo.dynamicStateEnables.size());
     configInfo.dynamicStateInfo.flags = 0;
+     
+    return configInfo;
 }

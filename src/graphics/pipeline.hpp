@@ -10,6 +10,8 @@ namespace cup
     struct PipelineConfigInfo {
         PipelineConfigInfo(const PipelineConfigInfo&) = delete;
         PipelineConfigInfo& operator=(const PipelineConfigInfo&) = delete;
+        PipelineConfigInfo(PipelineConfigInfo&&) = default;
+        PipelineConfigInfo& operator=(PipelineConfigInfo&&) = default;
 
         std::string vertShaderFilePath;
         std::string fragShaderFilePath;
@@ -34,7 +36,7 @@ namespace cup
         Pipeline(Device& device, PipelineConfigInfo& configInfo);
         ~Pipeline();
 
-        static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo);
+        static PipelineConfigInfo defaultPipelineConfigInfo();
 
         VkPipeline pipeline() const { return pipeline_; }
 

@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <vector>
+#include "ecs/ecs.hpp"
 #include "graphics/instance.hpp"
 #include "window.hpp"
 #include "device.hpp"
@@ -10,7 +11,7 @@ namespace cup
 {
     class WindowManager {
     public: 
-        WindowManager(Instance& instance);
+        WindowManager(ecs::ECS& ecs, Instance& instance);
         ~WindowManager();
 
         void run();
@@ -18,9 +19,12 @@ namespace cup
 
         const Window& mainWindow() const { return *windows[0]; }
         const Window& currentWindow() const { return *currentWindow_; }
+
+        Device& getDevice() const { return *device; }
     private:
         void createMainWindow();
 
+        ecs::ECS& ecs;
         Instance& instance;
 
         std::vector<Window*> windows;

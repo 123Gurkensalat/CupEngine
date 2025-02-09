@@ -3,6 +3,7 @@
 #include "graphics/device.hpp"
 #include <array>
 #include <glm/ext/vector_float2.hpp>
+#include <string>
 #include <vulkan/vulkan_core.h>
 
 namespace cup {
@@ -16,7 +17,7 @@ namespace cup {
             static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions();
         };
 
-        Sprite(Device& device);
+        Sprite(Device& device, const std::string& path);
         Sprite(const Sprite&) = delete;
         Sprite(Sprite&&) = delete;
 
@@ -31,7 +32,7 @@ namespace cup {
         void draw(VkCommandBuffer commandBuffer) const;
 
     private: 
-        VkExtent2D createTextureImage();
+        VkExtent2D createTextureImage(const std::string& path);
         void createTextureImageView();
         void createTextureSampler();
 

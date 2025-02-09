@@ -1,50 +1,51 @@
 #pragma once
 
 #include "device.hpp"
-#include "graphics/sprite.hpp"
 #include "pipeline.hpp"
+#include "swap_chain.hpp"
 #include <memory>
 #include <vulkan/vulkan_core.h>
-#include <glm/mat4x4.hpp>
 
 namespace cup 
 {
     class Renderer;
     class RenderSystem {
     public:
-        RenderSystem(Device& device, Renderer& renderer);
-        ~RenderSystem();
+        RenderSystem(Device& device);
 
-        void render(VkCommandBuffer commandBuffer, size_t currentFrame, float aspectRatio) const;
+    protected:
+        void createDescriptorSetLayout(std::vector<VkDescriptorSetLayoutBinding> bindings, VkDescriptorSetLayout* descriptorSetLayout);
+        void createPipelineLayout(std::vector<VkDescriptorSetLayout> setLayout, std::vector<VkPushConstantRange> pushConstantRanges, VkPipelineLayout* pipelineLayout);
+        void createPipeline(PipelineConfigInfo& pipelineConfig);
+
+        template<typename T>
+        void createUniformBuffers(std::vector<VkBuffer>& uniformBuffers, std::vector<VkDeviceMemory>& uniformBuffersMemory, std::vector<void*>& uniformBuffersMapped); 
+        void createDescriptorSets(VkDescriptorSetLayout layout, std::vector<VkDescriptorSet>& descriptorSets);
+
+        std::unique_ptr<Pipeline> pipeline;
 
     private:
-        struct UniformBufferObject {
-            glm::mat4 model;
-            glm::mat4 view;
-            glm::mat4 proj;
-        };
-       
-        // move pool creation to device or resource manager, helper functions somewhere else too
-        void createDescriptorSetLayout();
-        void createPipelineLayout();
-        void createPipeline(VkRenderPass renderPass);
-        
-        void createDescriptorSets();
-        void createUniformBuffers(); 
-
-        void updateDescriptorSets(size_t currentFrame, VkDescriptorImageInfo& imageInfo) const;
-
         Device& device;
-        Renderer& renderer;
-
-        VkDescriptorSetLayout descriptorSetLayout;
-        VkPipelineLayout pipelineLayout;
-        std::unique_ptr<Pipeline> pipeline;
-        std::shared_ptr<Sprite> model;
-
-        std::vector<VkDescriptorSet> descriptorSets;
-        std::vector<VkBuffer> uniformBuffers;
-        std::vector<VkDeviceMemory> uniformBuffersMemory;
-        std::vector<void*> uniformBuffersMapped;
     };
+
+    template<typename  T>
+    void RenderSystem::createUniformBuffers(std::vector<VkBuffer>& uniformBuffers, std::vector<VkDeviceMemory>& uniformBuffersMemory, std::vector<void*>& uniformBuffersMapped) 
+    {
+        VkDeviceSize size = sizeof(T);
+
+        uniformBuffers.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
+        uniformBuffersMemory.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
+        uniformBuffersMapped.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
+
+        for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
+            device.createBuffer(
+                size, 
+                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+                &uniformBuffers[i], 
+                &uniformBuffersMemory[i]);
+
+            vkMapMemory(device.device(), uniformBuffersMemory[i], 0, size, 0, &uniformBuffersMapped[i]);
+        }
+    }
 }

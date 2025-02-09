@@ -1,5 +1,6 @@
 #include "window_manager.hpp"
 #include "device.hpp"
+#include "ecs/ecs.hpp"
 #include "graphics/window.hpp"
 #include <GLFW/glfw3.h>
 #include <cstdlib>
@@ -9,7 +10,7 @@
 
 using namespace cup;
 
-WindowManager::WindowManager(Instance& instance) : instance(instance) 
+WindowManager::WindowManager(ecs::ECS& ecs, Instance& instance) : ecs(ecs), instance(instance) 
 {
     createMainWindow(); 
 }
@@ -63,7 +64,7 @@ void WindowManager::createMainWindow()
 {
     windows.push_back(new Window(instance, "Main"));
     device = std::make_unique<Device>(instance, *windows[0]);
-    renderers.push_back(new Renderer(*device.get(), *windows[0]));
+    renderers.push_back(new Renderer(ecs, *device.get(), *windows[0]));
     windowsCount += 1;
 }
 
@@ -75,7 +76,7 @@ Window& WindowManager::createWindow(const std::string& title)
         windows.push_back(new Window(instance, title.c_str()));
         Window& window = *windows.back();
 
-        renderers.push_back(new Renderer(*device.get(), window));
+        renderers.push_back(new Renderer(ecs, *device.get(), window));
         windowsCount += 1;
         return window;
     }
@@ -86,7 +87,7 @@ Window& WindowManager::createWindow(const std::string& title)
 
         // if its empty create new window in its place
         windows[i] = new Window(instance, title.c_str());
-        renderers[i] = new Renderer(*device.get(), *windows[i]);
+        renderers[i] = new Renderer(ecs, *device.get(), *windows[i]);
         windowsCount += 1;
         return *windows[i];
     }

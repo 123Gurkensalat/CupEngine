@@ -4,7 +4,9 @@
 #include "typedefs.hpp"
 #include <cassert>
 #include <functional>
+#include <iostream>
 #include <memory>
+#include <ostream>
 #include <tuple>
 #include <unordered_map>
 
@@ -58,7 +60,7 @@ namespace cup::ecs {
 
         id_ = base.id() | (1 << T::id);
         for (auto& [c_id, array] : base.componentArrays) {
-            componentArrays.insert({T::id, array->createNewArray()});
+            componentArrays.insert({c_id, array->createNewArray()});
         } 
 
         componentArrays.insert({T::id, std::make_unique<ComponentArray<T>>()});
@@ -70,7 +72,7 @@ namespace cup::ecs {
         std::tuple<ComponentArray<Args>& ...> suitedArrays = {getComponentArray<Args>()...};
 
         for (size_t i = 0; i < entries; i++) {
-            func(*static_cast<Args*>(std::get<ComponentArray<Args>&>(suitedArrays).get(i))...);
+            func(*static_cast<Args*>(static_cast<ComponentArray<Args>&>(std::get<ComponentArray<Args>&>(suitedArrays)).get(i))...);
         }
     }
  

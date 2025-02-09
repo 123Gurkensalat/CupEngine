@@ -1,5 +1,6 @@
 #include "renderer.hpp"
 #include "device.hpp"
+#include "ecs/ecs.hpp"
 #include "render_system.hpp"
 #include "window.hpp"
 #include <cstdint>
@@ -10,11 +11,11 @@
 
 using namespace cup;
 
-Renderer::Renderer(Device& device, Window& window) 
+Renderer::Renderer(ecs::ECS& ecs, Device& device, Window& window) 
     : device(device), window(window), swapChain_(device, window)
 {
     createCommandBuffer();
-    renderSystem = std::make_unique<RenderSystem>(device, *this);
+    spriteRenderSystem = std::make_unique<SpriteRendererSystem>(ecs, device, swapChain_.renderPass());
 }
 
 void Renderer::createCommandBuffer() 
@@ -37,7 +38,7 @@ void Renderer::draw()
     if (auto commandBuffer = beginFrame()) {
         beginSwapChainRenderPass(commandBuffer);
 
-        renderSystem->render(commandBuffer, currentFrame, (float) swapChain_.extent().width / swapChain_.extent().height);
+        spriteRenderSystem->render(commandBuffer, (float)swapChain_.extent().width / swapChain_.extent().height);
 
         endSwapChainRenderPass(commandBuffer);
         endFrame();

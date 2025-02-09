@@ -7,8 +7,8 @@ using cup::ecs::Archetype;
 void ComponentManager::updateComponentArchetypesMap(Archetype& newArchetype) 
 {
     for (componentId i = 0; i < MAX_COMPONENT_TYPES; i++) {
-        if (newArchetype.id() >> i)
-        component_archetypes[i].insert({newArchetype.id()});
+        if (newArchetype.id() & (1 << i))
+            component_archetypes[i].insert({newArchetype.id()});
     }
 }
 

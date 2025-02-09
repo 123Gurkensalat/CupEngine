@@ -83,8 +83,7 @@ namespace cup::ecs
     template<typename T>
     std::unique_ptr<IComponentArray> ComponentArray<T>::createNewArray() 
     {
-        std::unique_ptr<ComponentArray<T>> ptr{new ComponentArray<T>()};
-        return ptr;
+        return std::unique_ptr<ComponentArray<T>>{new ComponentArray<T>()};
     }
 
     template<typename T>

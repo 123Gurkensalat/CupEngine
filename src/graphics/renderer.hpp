@@ -1,7 +1,8 @@
 #pragma once
 
 #include "device.hpp"
-#include "render_system.hpp"
+#include "ecs/ecs.hpp"
+#include "ecs/systems/sprite_renderer_system.hpp"
 #include "swap_chain.hpp"
 #include "window.hpp"
 #include <memory>
@@ -12,7 +13,7 @@ namespace cup
 {
     class Renderer {
     public:
-        Renderer(Device& device, Window& window);
+        Renderer(ecs::ECS& ecs, Device& device, Window& window);
         ~Renderer() = default;
 
         Renderer(const Renderer&) = delete;
@@ -43,7 +44,7 @@ namespace cup
 
         std::vector<VkCommandBuffer> commandBuffers; 
         
-        std::unique_ptr<RenderSystem> renderSystem;
+        std::unique_ptr<SpriteRendererSystem> spriteRenderSystem;
 
         uint32_t currentImageIndex = 0; 
         uint32_t currentFrame = 0;

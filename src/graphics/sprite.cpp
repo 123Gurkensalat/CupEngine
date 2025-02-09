@@ -1,9 +1,9 @@
 #include "sprite.hpp"
 
-#include <iostream>
 #include <stb_image.h>
 #include <stdexcept>
 #include <cstring>
+#include <string>
 #include <vulkan/vulkan_core.h>
 
 using namespace cup;
@@ -11,12 +11,12 @@ using namespace cup;
 typedef uint16_t vertexIndex;
 constexpr std::array<vertexIndex, 6> vertexIndices = {0, 1, 2, 1, 3, 2};
 
-Sprite::Sprite(Device& device) : device(device)
+Sprite::Sprite(Device& device, const std::string& path) : device(device)
 {
     VkDeviceSize vertexBufferSize = sizeof(vertices[0]) * vertices.size();
     constexpr VkDeviceSize indexBufferSize = sizeof(vertexIndices[0]) * vertexIndices.size();
 
-    VkExtent2D texExtent = createTextureImage();
+    VkExtent2D texExtent = createTextureImage(path);
     createTextureImageView();
     createTextureSampler();
 
@@ -69,10 +69,10 @@ void Sprite::draw(VkCommandBuffer commandBuffer) const
     vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(vertexIndices.size()), 1, 0, 0, 0);
 }  
 
-VkExtent2D Sprite::createTextureImage()
+VkExtent2D Sprite::createTextureImage(const std::string& path)
 {
     int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load("../src/graphics/textures/texture.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
     VkDeviceSize imageSize = texWidth * texHeight * 4;
 

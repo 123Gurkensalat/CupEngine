@@ -67,7 +67,7 @@ namespace cup::ecs {
             // update entity records
             entity_archetypes.insert({entity, {archetype, archetype.size() - 1}});
 
-            return *component;
+            return getComponent<T>(entity);
         } 
         // entity already has an archetype
 
@@ -76,14 +76,16 @@ namespace cup::ecs {
         // get entity data
         entityComponentsData data = record.archetype.get()[record.row];
         T* component = new T();
-        data[T::id] = component;
+        data.insert({T::id, component});
 
         // create new archetype if not existing
         archetypeId newId = record.archetype.get().id() | (1 << T::id);
         auto [it, isNew] = archetypes.insert({newId, Archetype()});
         Archetype& archetype = it->second;
-        if (isNew) archetype.init<T>(record.archetype.get());
-
+        if (isNew) {
+            archetype.init<T>(record.archetype.get());
+            updateComponentArchetypesMap(archetype);
+        }
         // move data to new entry
         archetype.addEntry(data);
 
@@ -93,7 +95,7 @@ namespace cup::ecs {
         // update records
         entity_archetypes.at(entity) = {archetype, archetype.size() - 1};
 
-        return *component;
+        return getComponent<T>(entity);
     }
 
     template<typename ...T>
@@ -149,6 +151,7 @@ namespace cup::ecs {
             if ((id & compareId) == compareId) matchingIds.push_back({id});
         }
         }(),...);
+
 
         // call func on every entry
         for (auto id : matchingIds) {
