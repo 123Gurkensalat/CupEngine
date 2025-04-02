@@ -1,5 +1,6 @@
 #include "sprite.hpp"
 
+#include <iostream>
 #include <stb_image.h>
 #include <stdexcept>
 #include <cstring>
@@ -11,7 +12,7 @@ using namespace cup;
 typedef uint16_t vertexIndex;
 constexpr std::array<vertexIndex, 6> vertexIndices = {0, 1, 2, 1, 3, 2};
 
-Sprite::Sprite(Device& device, const std::string& path) : device(device)
+Sprite::Sprite(Device& device, const char* path) : device(device)
 {
     VkDeviceSize vertexBufferSize = sizeof(vertices[0]) * vertices.size();
     constexpr VkDeviceSize indexBufferSize = sizeof(vertexIndices[0]) * vertexIndices.size();
@@ -69,10 +70,10 @@ void Sprite::draw(VkCommandBuffer commandBuffer) const
     vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(vertexIndices.size()), 1, 0, 0, 0);
 }  
 
-VkExtent2D Sprite::createTextureImage(const std::string& path)
+VkExtent2D Sprite::createTextureImage(const char* path)
 {
     int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    stbi_uc* pixels = stbi_load(path, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
     VkDeviceSize imageSize = texWidth * texHeight * 4;
 

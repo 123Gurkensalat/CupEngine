@@ -3,7 +3,6 @@
 #include "ecs/components/sprite_renderer.hpp"
 #include "ecs/ecs.hpp"
 #include "ecs/components/transform.hpp"
-#include <memory>
 
 // load stb image library
 #define STB_IMAGE_IMPLEMENTATION
@@ -25,7 +24,7 @@ void App::run()
     ecs.addComponent<Transform>(entity3);
     auto& renderer = ecs.addComponent<SpriteRenderer>(entity1);
 
-    renderer.sprite = std::make_shared<Sprite>(windowManager.getDevice(), "../src/graphics/textures/texture.jpg");
+    renderer.setSprite("../src/graphics/textures/texture.jpg");
 
     windowManager.run();
 }

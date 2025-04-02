@@ -93,7 +93,6 @@ void SpriteRendererSystem::createDescriptorSets()
             descriptorWrites.data(), 
             0, nullptr);
     }
-
 }        
 
 void SpriteRendererSystem::render(VkCommandBuffer commandBuffer, float aspectRatio) 
@@ -123,7 +122,7 @@ void SpriteRendererSystem::render(VkCommandBuffer commandBuffer, float aspectRat
     memcpy(uniformBuffersMapped[currentFrame], &ubo, sizeof(ubo));
 
     std::function<void(SpriteRenderer&)> lambda = [&](SpriteRenderer& spriteRenderer){
-        VkDescriptorImageInfo imageInfo = spriteRenderer.sprite->imageInfo();
+        VkDescriptorImageInfo imageInfo = spriteRenderer.sprite().imageInfo();
         updateDescriptorSets(currentFrame, imageInfo);
 
         vkCmdBindDescriptorSets(
@@ -134,8 +133,8 @@ void SpriteRendererSystem::render(VkCommandBuffer commandBuffer, float aspectRat
                 &descriptorSets[currentFrame], 
                 0, nullptr);
 
-        spriteRenderer.sprite->bind(commandBuffer);
-        spriteRenderer.sprite->draw(commandBuffer);
+        spriteRenderer.sprite().bind(commandBuffer);
+        spriteRenderer.sprite().draw(commandBuffer);
     };
 
     ecs.forEach(lambda);  
