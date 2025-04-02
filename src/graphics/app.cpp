@@ -24,7 +24,7 @@ void App::run()
     ecs.addComponent<Transform>(entity3);
     auto& renderer = ecs.addComponent<SpriteRenderer>(entity1);
 
-    renderer.setSprite("../src/graphics/textures/texture.jpg");
+    renderer.setSprite("../res/texture.jpg");
 
     windowManager.run();
 }
