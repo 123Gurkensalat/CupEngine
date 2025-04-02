@@ -17,7 +17,7 @@ namespace cup {
         };
 
         Sprite() = delete;
-        Sprite(Device& device, const char* path);
+        Sprite(Device* device, const char* path);
         Sprite(const Sprite&) = delete;
         Sprite(Sprite&&) = default;
 
@@ -39,7 +39,7 @@ namespace cup {
         void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) const;
         void copyBufferToImage(VkBuffer buffer, VkImage image, VkExtent3D extent) const;
 
-        Device& device;
+        Device* device;
 
         // 2 ---- 3
         // | \    |

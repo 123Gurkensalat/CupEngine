@@ -1,10 +1,8 @@
 #include "sprite.hpp"
 
-#include <iostream>
 #include <stb_image.h>
 #include <stdexcept>
 #include <cstring>
-#include <string>
 #include <vulkan/vulkan_core.h>
 
 using namespace cup;
@@ -12,7 +10,7 @@ using namespace cup;
 typedef uint16_t vertexIndex;
 constexpr std::array<vertexIndex, 6> vertexIndices = {0, 1, 2, 1, 3, 2};
 
-Sprite::Sprite(Device& device, const char* path) : device(device)
+Sprite::Sprite(Device* device, const char* path) : device(device)
 {
     VkDeviceSize vertexBufferSize = sizeof(vertices[0]) * vertices.size();
     constexpr VkDeviceSize indexBufferSize = sizeof(vertexIndices[0]) * vertexIndices.size();
@@ -30,22 +28,22 @@ Sprite::Sprite(Device& device, const char* path) : device(device)
         Vertex{{ unitsWidth,  unitsHeight}, {1.0f, 1.0f}}
     };
 
-    device.createTransferBuffer(vertexBufferSize, vertices.data(), &vertexBuffer, &vertexBufferMemory, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-    device.createTransferBuffer(indexBufferSize, vertexIndices.data(), &indexBuffer, &indexBufferMemory, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+    device->createTransferBuffer(vertexBufferSize, vertices.data(), &vertexBuffer, &vertexBufferMemory, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+    device->createTransferBuffer(indexBufferSize, vertexIndices.data(), &indexBuffer, &indexBufferMemory, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 }
 
 Sprite::~Sprite() 
 {    
-    vkDestroySampler(device.device(), textureSampler, nullptr);
-    vkDestroyImageView(device.device(), textureImageView, nullptr);
-    vkDestroyImage(device.device(), textureImage, nullptr);
-    vkFreeMemory(device.device(), textureImageMemory, nullptr);
+    vkDestroySampler(device->device(), textureSampler, nullptr);
+    vkDestroyImageView(device->device(), textureImageView, nullptr);
+    vkDestroyImage(device->device(), textureImage, nullptr);
+    vkFreeMemory(device->device(), textureImageMemory, nullptr);
  
-    vkDestroyBuffer(device.device(), indexBuffer, nullptr);
-    vkFreeMemory(device.device(), indexBufferMemory, nullptr);
+    vkDestroyBuffer(device->device(), indexBuffer, nullptr);
+    vkFreeMemory(device->device(), indexBufferMemory, nullptr);
 
-    vkDestroyBuffer(device.device(), vertexBuffer, nullptr);
-    vkFreeMemory(device.device(), vertexBufferMemory, nullptr);
+    vkDestroyBuffer(device->device(), vertexBuffer, nullptr);
+    vkFreeMemory(device->device(), vertexBufferMemory, nullptr);
 }
         
 VkDescriptorImageInfo Sprite::imageInfo() const 
@@ -84,7 +82,7 @@ VkExtent2D Sprite::createTextureImage(const char* path)
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
-    device.createBuffer(
+    device->createBuffer(
         imageSize, 
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -92,13 +90,13 @@ VkExtent2D Sprite::createTextureImage(const char* path)
         &stagingBufferMemory);
 
     void* data;
-    vkMapMemory(device.device(), stagingBufferMemory, 0, imageSize, 0, &data);
+    vkMapMemory(device->device(), stagingBufferMemory, 0, imageSize, 0, &data);
     memcpy(data, pixels, static_cast<size_t>(imageSize));
-    vkUnmapMemory(device.device(), stagingBufferMemory);
+    vkUnmapMemory(device->device(), stagingBufferMemory);
 
     stbi_image_free(pixels);
 
-    device.createImage(
+    device->createImage(
         {static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 1}, 
         VK_FORMAT_R8G8B8A8_SRGB, 
         VK_IMAGE_TILING_OPTIMAL, 
@@ -124,15 +122,15 @@ VkExtent2D Sprite::createTextureImage(const char* path)
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-    vkDestroyBuffer(device.device(), stagingBuffer, nullptr);
-    vkFreeMemory(device.device(), stagingBufferMemory, nullptr);
+    vkDestroyBuffer(device->device(), stagingBuffer, nullptr);
+    vkFreeMemory(device->device(), stagingBufferMemory, nullptr);
 
     return {static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight)};
 }
 
 void Sprite::createTextureImageView() 
 {
-    device.createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, &textureImageView);
+    device->createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, &textureImageView);
 }
 
 void Sprite::createTextureSampler() 
@@ -154,14 +152,14 @@ void Sprite::createTextureSampler()
     samplerInfo.minLod = 0.0f;
     samplerInfo.maxLod = 0.0f;
 
-    if (vkCreateSampler(device.device(), &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
+    if (vkCreateSampler(device->device(), &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture sampler!");
     }
 }
 
 void Sprite::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) const
 {
-    VkCommandBuffer commandBuffer = device.beginTransferCommands();
+    VkCommandBuffer commandBuffer = device->beginTransferCommands();
 
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -203,12 +201,12 @@ void Sprite::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout
         0, nullptr, 
         1, &barrier);
 
-    device.endTransferCommands(commandBuffer);
+    device->endTransferCommands(commandBuffer);
 }
 
 void Sprite::copyBufferToImage(VkBuffer buffer, VkImage image, VkExtent3D extent) const
 {
-    VkCommandBuffer commandBuffer = device.beginTransferCommands();
+    VkCommandBuffer commandBuffer = device->beginTransferCommands();
 
     VkBufferImageCopy region{};
     region.bufferOffset = 0;
@@ -225,7 +223,7 @@ void Sprite::copyBufferToImage(VkBuffer buffer, VkImage image, VkExtent3D extent
 
     vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-    device.endTransferCommands(commandBuffer);
+    device->endTransferCommands(commandBuffer);
 }
 
 VkVertexInputBindingDescription Sprite::Vertex::getBindingDescription() 

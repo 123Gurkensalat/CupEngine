@@ -13,6 +13,6 @@ namespace cup {
         Sprite& sprite() { return ResourceManager::getSprite(spriteIndex); }
         void setSprite(const char* path) { spriteIndex = ResourceManager::getSpriteIndex(path); }
     private:
-        uint32_t spriteIndex;
+        uint32_t spriteIndex = 0;
     };
 }

@@ -17,7 +17,7 @@ namespace cup {
         static ResourceManager* instance;
         Device& device;
 
-        static std::vector<Sprite> sprites;
-        static std::unordered_map<const char*, uint32_t> spriteIndices;
+        std::vector<Sprite> sprites;
+        std::unordered_map<const char*, uint32_t> spriteIndices;
     };
 }
