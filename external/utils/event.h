@@ -12,11 +12,11 @@ namespace utils {
         Event(Event<Args...>&) = delete;
         void operator=(Event<Args...>&) = delete;
 
-        void operator+= (const Handler& func) {
+        void operator+= (const Handler& func) const {
             handlers.emplace_back(func);
         }
 
-        void Invoke(Args... args) {
+        void Invoke(Args... args) const {
             for(const auto& func : handlers) {
                 func(args...);
             }

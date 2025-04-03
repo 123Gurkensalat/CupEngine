@@ -115,10 +115,10 @@ void SpriteRendererSystem::render(VkCommandBuffer commandBuffer, float aspectRat
         counter = 0;
         lastTime = currentTime;
     }
+
     std::function<void(SpriteRenderer&, Transform&)> lambda = [&](SpriteRenderer& spriteRenderer, Transform& transform){
 
         UniformBufferObject ubo;
-        //ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f),glm::vec3(0.0f, 0.0f, 1.0f));
         transform.rotation = time * glm::radians(90.0f);
         ubo.model = transform.mat();
         ubo.view = Camera::main.worldToCamMat();
@@ -141,7 +141,7 @@ void SpriteRendererSystem::render(VkCommandBuffer commandBuffer, float aspectRat
         spriteRenderer.sprite().draw(commandBuffer);
     };
 
-    std::cout << ecs.forEach(lambda) << std::endl;  
+    ecs.forEach(lambda);  
     currentFrame = (currentFrame + 1) % SwapChain::MAX_FRAMES_IN_FLIGHT;
 }
 
