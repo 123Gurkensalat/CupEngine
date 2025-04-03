@@ -17,7 +17,7 @@ namespace cup::input {
     template<>
     class Action<InputType::Key>{
     public:
-        Action(ActionMap& actionMap) : actionMap(actionMap) {}
+        Action(ActionMap& action_map) : action_map(action_map) {}
         Action(const Action&) = delete;
         Action& operator=(const Action&) = delete;
 
@@ -35,7 +35,7 @@ namespace cup::input {
         void onKeyEvent(int action);
 
     private:
-        ActionMap& actionMap;
+        ActionMap& action_map;
         std::unordered_map<InputDevice, std::vector<KeyCode>> bindings;
         bool pressed{};
     };
@@ -46,4 +46,3 @@ namespace cup::input {
 ////  Axis 2D  ////////////////////////////////////////////////////////////////
 }
 
-#include "action.tpp"

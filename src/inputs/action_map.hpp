@@ -6,36 +6,65 @@
 
 #include <stdexcept>
 #include <unordered_map>
+#include <vector>
 
 namespace cup::input {
     class InputManager;
 
     class ActionMap {
-        friend class Action<InputType::Key>;
-        friend class Action<InputType::Axis1D>;
-        friend class Action<InputType::Axis2D>;
+        template<InputType> 
+        friend class Action;
         friend class InputManager;
     public:
-        Action<InputType::Key>& operator[](const char* action);
+        template<InputType T>
+        Action<T>& operator[](const char* name);
 
         template<InputType T>
         Action<T>& createAction(const char* name);
+        void deleteAction(const char* name);
+
     private:
         void key_callback(KeyCode key, int scancode, int action, int mods);
 
-        std::unordered_map<const char*, Action<InputType::Key>> actionsKey;
-        std::unordered_map<const char*, Action<InputType::Axis1D>> actionsAxis1D;
-        std::unordered_map<const char*, Action<InputType::Axis2D>> actionsAxis2D;
-        std::unordered_map<KeyCode, utils::Event<int>> keyboardEvents;
+        template<InputType T>
+        std::vector<Action<T>>& getActionVector();
+
+        std::unordered_map<const char*, uint32_t> name_to_index;
+        std::vector<Action<InputType::Key>> actions_key;
+        std::vector<Action<InputType::Axis1D>> actions_axis1D;
+        std::vector<Action<InputType::Axis2D>> actions_axis2D;
+
+        std::unordered_map<KeyCode, utils::Event<int>> keyboard_events;
     };
+
+    template<InputType T>
+    Action<T>& ActionMap::operator[](const char* name) 
+    {
+        return getActionVector<T>()[name_to_index.at(name)];
+    }
 
     template<InputType T>
     Action<T>& ActionMap::createAction(const char* name) 
     {
-        if (actionsKey.find(name) != actionsKey.end()) {
-            throw std::runtime_error("Action was already created");
+        if (name_to_index.find(name) != name_to_index.end()) {
+            throw std::runtime_error("Action with same name already exists");
         }
         
-        actionsKey.insert({name, {*this}});
+        // insert in the right vector
+        getActionVector<T>().emplace_back(*this);
+    }
+
+    template<InputType T>
+    std::vector<Action<T>>& ActionMap::getActionVector() 
+    {
+        if constexpr (T == InputType::Key) {
+            return actions_key;
+        } else if constexpr (T == InputType::Axis1D) {
+            return actions_axis1D;
+        } else if constexpr (T == InputType::Axis2D) {
+            return actions_axis2D;
+        }
     }
 }
+
+#include "action.tpp"

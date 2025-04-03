@@ -1,7 +1,7 @@
 #pragma once
 
-#import "action.hpp"
-#import "action_map.hpp"
+#include "action.hpp"
+#include "action_map.hpp"
 
 namespace cup::input {
 ////  Key  ////////////////////////////////////////////////////////////////////
@@ -9,7 +9,7 @@ namespace cup::input {
     template<InputDevice>
     void Action<InputType::Key>::addBinding(KeyCode key) 
     {
-        actionMap.keyboardEvents.at(key) += [&](int action){onKeyEvent(action);};         
+        action_map.keyboard_events[key] += [&](int action){onKeyEvent(action);};         
     }
 
     template<InputDevice>
