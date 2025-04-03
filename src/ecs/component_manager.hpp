@@ -144,13 +144,12 @@ namespace cup::ecs {
         std::vector<archetypeId> matchingIds{};
 
         // get possible archetypeIds
-        ([&]() {
-        const auto& archetypeIds = component_archetypes.at(Args::id);
+        componentId firstComponentId = std::tuple_element_t<0, std::tuple<Args...>>::id;
+        const auto& archetypeIds = component_archetypes.at(firstComponentId);
 
         for (archetypeId id : archetypeIds) {
             if ((id & compareId) == compareId) matchingIds.push_back({id});
         }
-        }(),...);
 
         // call func on every entry
         for (auto id : matchingIds) {
