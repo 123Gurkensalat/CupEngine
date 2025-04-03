@@ -29,7 +29,7 @@ namespace cup::ecs {
         bool hasComponent(entityId entity);
 
         template<typename ...Args>
-        void forEach(std::function<void(Args&...)>& func);
+        uint32_t forEach(std::function<void(Args&...)>& func);
 
     private:
         struct Record {
@@ -138,7 +138,7 @@ namespace cup::ecs {
     }
 
     template<typename ...Args>
-    void ComponentManager::forEach(std::function<void(Args&...)>& func) 
+    uint32_t ComponentManager::forEach(std::function<void(Args&...)>& func) 
     {
         archetypeId compareId = ((1 << Args::id) | ...);
         std::vector<archetypeId> matchingIds{};
@@ -152,10 +152,11 @@ namespace cup::ecs {
         }
         }(),...);
 
-
         // call func on every entry
         for (auto id : matchingIds) {
             archetypes[id].forEach(func);
         }
+
+        return matchingIds.size();
     }
 }

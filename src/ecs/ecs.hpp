@@ -25,7 +25,7 @@ namespace cup::ecs {
         void removeComponent(entityId entity);
 
         template<typename ...Args>
-        void forEach(std::function<void(Args&...)>& func);
+        uint32_t forEach(std::function<void(Args&...)>& func);
     private:
         EntityManager entityManager{};
         ComponentManager componentManager{};
@@ -50,8 +50,8 @@ namespace cup::ecs {
     }
 
     template<typename ...Args>
-    void ECS::forEach(std::function<void(Args&...)>& func)
+    uint32_t ECS::forEach(std::function<void(Args&...)>& func)
     {
-        componentManager.forEach(func);
+        return componentManager.forEach(func);
     }
 }
