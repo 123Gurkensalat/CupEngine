@@ -23,7 +23,7 @@ void Window::createWindow(const char* title)
     //glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     window_ = glfwCreateWindow(WIDTH, HEIGHT, title, nullptr, nullptr);
-    glfwSetWindowUserPointer(window_, this);
+    setUserTupleElement(this);
     glfwSetFramebufferSizeCallback(window_, framebufferResizeCallback);
 }
 
@@ -46,6 +46,6 @@ VkExtent2D Window::extent() const
 
 void Window::framebufferResizeCallback(GLFWwindow *glfwWindow, int width, int height)
 {
-    auto window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(glfwWindow));
-    window->framebufferResized = true;
+    auto& window = getUserTupleElement<Window>(glfwWindow);
+    window.framebufferResized = true;
 }
