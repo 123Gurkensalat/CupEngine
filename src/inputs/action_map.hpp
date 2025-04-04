@@ -27,7 +27,7 @@ namespace cup::input {
         void key_callback(KeyCode key, int scancode, int action, int mods);
 
         template<InputType T>
-        std::vector<Action<T>>& getActionVector();
+        constexpr std::vector<Action<T>>& getActionVector();
 
         std::unordered_map<const char*, uint32_t> name_to_index;
         std::vector<Action<InputType::Key>> actions_key;
@@ -51,11 +51,12 @@ namespace cup::input {
         }
         
         // insert in the right vector
-        getActionVector<T>().emplace_back(*this);
+        return getActionVector<InputType::Key>().emplace_back(*this);
+        //return getActionVector<T>().emplace_back(*this);
     }
 
     template<InputType T>
-    std::vector<Action<T>>& ActionMap::getActionVector() 
+    constexpr std::vector<Action<T>>& ActionMap::getActionVector() 
     {
         if constexpr (T == InputType::Key) {
             return actions_key;

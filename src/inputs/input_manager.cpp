@@ -4,6 +4,7 @@
 #include "inputs/types.hpp"
 
 #include <GLFW/glfw3.h>
+#include <stdexcept>
 
 using cup::input::InputManager;
 using cup::input::ActionMap;
@@ -23,17 +24,21 @@ InputManager::InputManager(GLFWwindow* window) : window(window)
     glfwSetKeyCallback(window, InputManager::key_callback);
 }
 
-ActionMap& InputManager::map(ActionMapIndex i) 
+ActionMap& InputManager::map(const char* name) 
 {
-    return action_maps[i];
+    return action_maps[name_to_index.at(name)];
 }
 
-void InputManager::setActiveMap(ActionMapIndex i) 
+void InputManager::setActiveMap(const char* name) 
 {
-    active_map = &action_maps[i];
+    active_map = &action_maps[name_to_index.at(name)];
 }
 
-ActionMap& InputManager::createMap()
+ActionMap& InputManager::createMap(const char* name)
 {
+    if (name_to_index.find(name) != name_to_index.end()) {
+        throw std::runtime_error("Could not create ActionMap because one with the same name already exists!");
+    }
+    name_to_index.emplace(name, action_maps.size());
     return action_maps.emplace_back();
 }
