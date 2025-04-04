@@ -10,7 +10,9 @@ namespace utils {
         using Handler = std::function<void(Args...)>;
         Event() {}
         Event(Event<Args...>&) = delete;
-        void operator=(Event<Args...>&) = delete;
+        Event& operator=(Event<Args...>&) = delete;
+        Event(Event<Args...>&&) = default;
+        Event& operator=(Event<Args...>&&) = default;
 
         void operator+= (const Handler& func) const {
             handlers.emplace_back(func);

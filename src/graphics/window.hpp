@@ -33,6 +33,7 @@ namespace cup
         // extent in pixel
         VkExtent2D extent() const;
         VkSurfaceKHR surface() const { return surface_; }
+        GLFWwindow* window() const { return window_; }
         
         template<typename T>
         void setUserTupleElement(T* e);
