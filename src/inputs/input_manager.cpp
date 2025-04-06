@@ -1,7 +1,6 @@
 #include "input_manager.hpp"
 #include "graphics/window.hpp"
 #include "inputs/action_map.hpp"
-#include "inputs/types.hpp"
 
 #include <GLFW/glfw3.h>
 #include <stdexcept>
@@ -14,6 +13,10 @@ InputManager* InputManager::instance = nullptr;
 void InputManager::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     auto& inputManager = Window::getUserTupleElement<InputManager>(window);
+    if (!inputManager.active_map) {
+        throw std::runtime_error("active ActionMap not set!");
+    }
+
     inputManager.active_map->key_callback(key, scancode, action, mods);
 }
 
@@ -39,6 +42,12 @@ ActionMap& InputManager::createMap(const char* name)
     if (name_to_index.find(name) != name_to_index.end()) {
         throw std::runtime_error("Could not create ActionMap because one with the same name already exists!");
     }
-    name_to_index.emplace(name, action_maps.size());
-    return action_maps.emplace_back();
+
+    name_to_index.emplace(name, action_maps.size()); 
+    auto& newMap = action_maps.emplace_back();
+
+    if (!active_map) {
+        active_map = &newMap;
+    }
+    return newMap;
 }

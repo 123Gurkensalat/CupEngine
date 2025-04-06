@@ -12,8 +12,9 @@ namespace cup::input {
     class InputManager;
 
     class ActionMap {
-        template<InputType> 
-        friend class Action;
+        friend class Action<InputType::Key>;
+        friend class Action<InputType::Axis1D>;
+        friend class Action<InputType::Axis2D>;
         friend class InputManager;
     public:
         template<InputType T>
@@ -51,8 +52,7 @@ namespace cup::input {
         }
         
         // insert in the right vector
-        return getActionVector<InputType::Key>().emplace_back(*this);
-        //return getActionVector<T>().emplace_back(*this);
+        return getActionVector<T>().emplace_back(*this);
     }
 
     template<InputType T>

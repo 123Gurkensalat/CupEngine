@@ -35,12 +35,12 @@ void App::testInputManager()
     auto& actionMap = inputManager.createMap("Editor");
     auto& action = actionMap.createAction<InputType::Key>("W Click");
     action.addBinding<InputDevice::Keyboard>(GLFW_KEY_W);
-    action.started += [](){std::cout << "w" << std::endl; };
+    action.started.Subscribe([](){std::cout << "w" << std::endl; });
 }
 
 void App::run() 
 {
     testECS();
- //   testInputManager();
+    testInputManager();
     windowManager.run();
 }

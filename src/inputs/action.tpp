@@ -9,7 +9,7 @@ namespace cup::input {
     template<InputDevice>
     void Action<InputType::Key>::addBinding(KeyCode key) 
     {
-        action_map.keyboard_events[key] += [&](int action){onKeyEvent(action);};         
+        action_map.get().keyboard_events[key].Subscribe(this, &Action<InputType::Key>::onKeyEvent);         
     }
 
     template<InputDevice>
