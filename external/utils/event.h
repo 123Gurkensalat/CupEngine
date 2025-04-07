@@ -9,7 +9,9 @@ namespace utils {
     public:
         Event() {}
         Event(Event<Args...>&) = delete;
+        Event(const Event<Args...>&) = delete;
         Event& operator=(Event<Args...>&) = delete;
+        Event& operator=(const Event<Args...>&) = delete;
         Event(Event<Args...>&&) = default;
         Event& operator=(Event<Args...>&&) = default;
 
