@@ -3,8 +3,10 @@
 #include "ecs/components/sprite_renderer.hpp"
 #include "ecs/ecs.hpp"
 #include "ecs/components/transform.hpp"
+#include "inputs/input_manager.hpp"
 #include "inputs/types.hpp"
 #include <iostream>
+#include <ostream>
 
 // load stb image library
 #define STB_IMAGE_IMPLEMENTATION
@@ -33,9 +35,11 @@ void App::testECS()
 void App::testInputManager() 
 {
     auto& actionMap = inputManager.createMap("Editor");
-    auto& action = actionMap.createAction<InputType::Key>("W Click");
-    action.addBinding<InputDevice::Keyboard>(GLFW_KEY_W);
-    action.started.Subscribe([](){std::cout << "w" << std::endl; });
+    auto& test = actionMap.createAction<InputType::Key>("Test");
+    test.addBinding<InputDevice::Keyboard>(GLFW_KEY_W);
+
+    auto& action = actionMap.createAction<InputType::Axis1D>("TestAxis");
+    action.addBinding<InputDevice::Keyboard>({GLFW_KEY_A, GLFW_KEY_D});
 }
 
 void App::run() 
