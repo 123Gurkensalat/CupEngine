@@ -2,7 +2,6 @@
 
 #include "utils/event.h"
 #include "inputs/types.hpp"
-#include "action.hpp"
 
 #include <stdexcept>
 #include <unordered_map>
@@ -11,6 +10,9 @@
 namespace cup::input {
     class InputManager;
 
+    template<InputType>
+    class Action;
+
     class ActionMap {
         friend class Action<InputType::Key>;
         friend class Action<InputType::Axis1D>;
@@ -18,11 +20,11 @@ namespace cup::input {
         friend class InputManager;
     public:
         template<InputType T>
-        Action<T>& operator[](const char* name);
+        Action<T>& action(std::string&& name);
 
         template<InputType T>
-        Action<T>& createAction(const char* name);
-        void deleteAction(const char* name);
+        Action<T>& createAction(std::string&& name);
+        void deleteAction(std::string&& name);
 
     private:
         void key_callback(KeyCode key, int scancode, int action, int mods);
@@ -30,28 +32,32 @@ namespace cup::input {
         template<InputType T>
         constexpr std::vector<Action<T>>& getActionVector();
 
-        std::unordered_map<const char*, uint32_t> name_to_index;
+        std::unordered_map<std::string, uint32_t> name_to_index;
         std::vector<Action<InputType::Key>> actions_key;
         std::vector<Action<InputType::Axis1D>> actions_axis1D;
         std::vector<Action<InputType::Axis2D>> actions_axis2D;
 
-        std::unordered_map<KeyCode, utils::Event<int>> keyboard_events;
+        std::unordered_map<KeyCode, utils::Event<KeyCode, int>> keyboard_events;
     };
 
     template<InputType T>
-    Action<T>& ActionMap::operator[](const char* name) 
+    Action<T>& ActionMap::action(std::string&& name) 
     {
+        assert(name_to_index.find(name) != name_to_index.end() 
+            && "There is no action existing with that name!");
+
         return getActionVector<T>()[name_to_index.at(name)];
     }
 
     template<InputType T>
-    Action<T>& ActionMap::createAction(const char* name) 
+    Action<T>& ActionMap::createAction(std::string&& name) 
     {
         if (name_to_index.find(name) != name_to_index.end()) {
             throw std::runtime_error("Action with same name already exists");
         }
         
         // insert in the right vector
+        name_to_index.emplace(name, getActionVector<T>().size());
         return getActionVector<T>().emplace_back(*this);
     }
 
@@ -68,4 +74,4 @@ namespace cup::input {
     }
 }
 
-#include "action.tpp"
+#include "action.hpp"

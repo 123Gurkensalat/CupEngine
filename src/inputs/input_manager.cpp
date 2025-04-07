@@ -1,3 +1,4 @@
+#include <cassert>
 #include "input_manager.hpp"
 #include "graphics/window.hpp"
 #include "inputs/action_map.hpp"
@@ -27,27 +28,34 @@ InputManager::InputManager(GLFWwindow* window) : window(window)
     glfwSetKeyCallback(window, InputManager::key_callback);
 }
 
-ActionMap& InputManager::map(const char* name) 
+ActionMap& InputManager::map(std::string&& name) 
 {
-    return action_maps[name_to_index.at(name)];
+    assert(instance->name_to_index.find(name) != instance->name_to_index.end() 
+            && "There is no map existing with that name!");
+
+    return instance->action_maps[instance->name_to_index.at(name)];
 }
 
-void InputManager::setActiveMap(const char* name) 
+void InputManager::setActiveMap(std::string&& name) 
 {
+    assert(instance->name_to_index.find(name) != instance->name_to_index.end() 
+            && "There is no map existing with that name!");
+
     active_map = &action_maps[name_to_index.at(name)];
 }
 
-ActionMap& InputManager::createMap(const char* name)
+ActionMap& InputManager::createMap(std::string&& name)
 {
     if (name_to_index.find(name) != name_to_index.end()) {
         throw std::runtime_error("Could not create ActionMap because one with the same name already exists!");
     }
 
-    name_to_index.emplace(name, action_maps.size()); 
+    instance->name_to_index.emplace(name, action_maps.size()); 
     auto& newMap = action_maps.emplace_back();
 
     if (!active_map) {
         active_map = &newMap;
     }
+
     return newMap;
 }

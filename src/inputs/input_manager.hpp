@@ -13,10 +13,12 @@ namespace cup::input {
     public:
         InputManager(GLFWwindow* window);
 
-        ActionMap& map(const char* name);
-        void setActiveMap(const char* name);
+        static ActionMap& map(std::string&& name);
+        void setActiveMap(std::string&& name);
 
-        ActionMap& createMap(const char* name);
+        ActionMap& createMap(std::string&& name);
+
+        static float readAxis(Axis1DCode axis) { return 0.0f; }
     private:
         static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
         
@@ -24,7 +26,7 @@ namespace cup::input {
         GLFWwindow* window;
         
         std::bitset<2> active_device_mask;
-        std::unordered_map<const char*, ActionMapIndex> name_to_index;
+        std::unordered_map<std::string, ActionMapIndex> name_to_index;
         std::vector<ActionMap> action_maps;
         ActionMap* active_map;
     };

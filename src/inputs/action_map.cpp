@@ -4,5 +4,6 @@ using namespace cup::input;
 
 void ActionMap::key_callback(KeyCode key, int scancode, int action, int mods) 
 {
-    keyboard_events.at(key).Invoke(action);
+    if (keyboard_events.find(key) == keyboard_events.end()) return;
+    keyboard_events.at(key).Invoke(key, action);
 }
