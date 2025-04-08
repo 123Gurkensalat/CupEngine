@@ -29,19 +29,17 @@ namespace cup::input {
         utils::Event<> performed{};
         utils::Event<> canceled{};
         
-        template<InputDevice>
-        void addBinding(KeyCode key);
-        template<InputDevice>
-        void changeBinding(KeyCode old, KeyCode key);
-        template<InputDevice>
-        void deleteBinding(KeyCode key);
+        void enable() { enabled = true; }
+        void disable() {enabled = false;}
 
+        void addBinding(KeyCode key);
     private:
         void onKeyEvent(KeyCode key, int action);
 
         std::reference_wrapper<ActionMap> action_map;
-        std::unordered_map<InputDevice, std::vector<KeyCode>> bindings{};
+
         bool pressed{};
+        bool enabled = true;
     };
 
 ////  Axis 1D  ////////////////////////////////////////////////////////////////
@@ -57,30 +55,21 @@ namespace cup::input {
         Action& operator=(Action<InputType::Axis1D>&&) = default;
         
         float value();
+        
+        void enable() { enabled = true; }
+        void disable() {enabled = false;}
 
-        template<InputDevice>
         void addBinding(Axis1DCode axis);
-        template<InputDevice>
         void addBinding(CompositeAxis1DCode axis);
-        template<InputDevice>
-        void changeBinding(Axis1DCode old, Axis1DCode axis);
-        template<InputDevice>
-        void changeBinding(CompositeAxis1DCode old, CompositeAxis1DCode axis);
-        template<InputDevice>
-        void deleteBinding(Axis1DCode axis);
-        template<InputDevice>
-        void deleteBinding(CompositeAxis1DCode axis);
-
     private:
-        template<InputDevice>
         void onKeyEvent(KeyCode key, int action);
 
+        bool enabled = true;
+
         std::reference_wrapper<ActionMap> action_map;
-        std::unordered_map<InputDevice, std::vector<Axis1DCode>> bindings{};
-        std::unordered_map<InputDevice, std::vector<CompositeAxis1DCode>> composite_bindings{};
+        std::vector<Axis1DCode> bindings{};
+        std::vector<CompositeAxis1DCode> composite_bindings{};
     };
 
 ////  Axis 2D  ////////////////////////////////////////////////////////////////
 }
-
-#include "action.tpp"

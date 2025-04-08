@@ -1,8 +1,12 @@
 #pragma once
 
+#include "inputs/mappings.hpp"
 #include "utils/event.h"
 #include "inputs/types.hpp"
 
+#include <GLFW/glfw3.h>
+#include <array>
+#include <cassert>
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>
@@ -24,8 +28,6 @@ namespace cup::input {
 
         template<InputType T>
         Action<T>& createAction(std::string&& name);
-        void deleteAction(std::string&& name);
-
     private:
         void key_callback(KeyCode key, int scancode, int action, int mods);
 
@@ -37,7 +39,7 @@ namespace cup::input {
         std::vector<Action<InputType::Axis1D>> actions_axis1D;
         std::vector<Action<InputType::Axis2D>> actions_axis2D;
 
-        std::unordered_map<KeyCode, utils::Event<KeyCode, int>> keyboard_events;
+        std::array<utils::Event<KeyCode, int>, KEY_COUNT> keyboard_events{};
     };
 
     template<InputType T>

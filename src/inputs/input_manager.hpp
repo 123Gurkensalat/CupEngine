@@ -25,7 +25,7 @@ namespace cup::input {
         static InputManager* instance;
         GLFWwindow* window;
         
-        std::bitset<2> active_device_mask;
+        std::bitset<SUPPORTED_INPUT_DEVICE_COUNT> active_device_mask;
         std::unordered_map<std::string, ActionMapIndex> name_to_index;
         std::vector<ActionMap> action_maps;
         ActionMap* active_map;

@@ -1,7 +1,8 @@
 #pragma once
 
+#define SUPPORTED_INPUT_DEVICE_COUNT 3
+
 #include <cstdint>
-#include <glm/glm.hpp>
 
 namespace cup::input {
     enum class InputType {
@@ -16,16 +17,7 @@ namespace cup::input {
         GamePad
     };
 
-    enum class GamePadAxis {
-        Left_X,
-        Left_Y,
-        Right_X,
-        Right_Y,
-        LeftTrigger,
-        RightTrigger
-    };
-
-    typedef uint8_t KeyCode;
+    typedef uint16_t KeyCode;
     typedef uint8_t Axis1DCode;
     struct CompositeAxis1DCode {
         bool operator==(CompositeAxis1DCode other) { return left == other.left && right == other.right; }

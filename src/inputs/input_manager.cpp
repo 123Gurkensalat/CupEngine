@@ -2,6 +2,7 @@
 #include "input_manager.hpp"
 #include "graphics/window.hpp"
 #include "inputs/action_map.hpp"
+#include "inputs/mappings.hpp"
 
 #include <GLFW/glfw3.h>
 #include <stdexcept>
@@ -13,12 +14,15 @@ InputManager* InputManager::instance = nullptr;
 
 void InputManager::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+    if (action != GLFW_PRESS && action != GLFW_RELEASE) return;
+
     auto& inputManager = Window::getUserTupleElement<InputManager>(window);
+
     if (!inputManager.active_map) {
         throw std::runtime_error("active ActionMap not set!");
     }
 
-    inputManager.active_map->key_callback(key, scancode, action, mods);
+    inputManager.active_map->key_callback(glfwKey_to_key(key), scancode, action, mods);
 }
 
 InputManager::InputManager(GLFWwindow* window) : window(window) 
