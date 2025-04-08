@@ -5,8 +5,6 @@
 #include "ecs/components/transform.hpp"
 #include "inputs/input_manager.hpp"
 #include "inputs/types.hpp"
-#include <iostream>
-#include <ostream>
 
 // load stb image library
 #define STB_IMAGE_IMPLEMENTATION
@@ -36,10 +34,10 @@ void App::testInputManager()
 {
     auto& actionMap = inputManager.createMap("Editor");
     auto& test = actionMap.createAction<InputType::Key>("Test");
-    test.addBinding<InputDevice::Keyboard>(GLFW_KEY_W);
+    test.addBinding(KEY_W);
 
     auto& action = actionMap.createAction<InputType::Axis1D>("TestAxis");
-    action.addBinding<InputDevice::Keyboard>({GLFW_KEY_A, GLFW_KEY_D});
+    action.addBinding({KEY_A, KEY_D});
 }
 
 void App::run() 
