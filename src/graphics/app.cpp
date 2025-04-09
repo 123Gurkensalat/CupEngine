@@ -5,6 +5,7 @@
 #include "ecs/components/transform.hpp"
 #include "inputs/input_manager.hpp"
 #include "inputs/types.hpp"
+#include <iostream>
 
 // load stb image library
 #define STB_IMAGE_IMPLEMENTATION
@@ -34,10 +35,15 @@ void App::testInputManager()
 {
     auto& actionMap = inputManager.createMap("Editor");
     auto& test = actionMap.createAction<InputType::Key>("Test");
-    test.addBinding(KEY_W);
+    test.addBinding(KEY_T);
 
-    auto& action = actionMap.createAction<InputType::Axis1D>("TestAxis");
-    action.addBinding({KEY_A, KEY_D});
+    auto& action = actionMap.createAction<InputType::Axis2D>("TestAxis");
+    action.addBinding(KEY_A, KEY_D, KEY_S, KEY_W);
+
+    test.started.Subscribe([](){
+        auto value = InputManager::map("Editor").action<InputType::Axis2D>("TestAxis").value();
+        std::cout << value.x << " | " << value.y << std::endl;
+    });
 }
 
 void App::run() 
