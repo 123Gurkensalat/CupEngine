@@ -7,7 +7,7 @@
 #include <GLFW/glfw3.h>
 #include <array>
 #include <cassert>
-#include <stdexcept>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -39,7 +39,7 @@ namespace cup::input {
         std::vector<Action<InputType::Axis1D>> actions_axis1D;
         std::vector<Action<InputType::Axis2D>> actions_axis2D;
 
-        std::array<utils::Event<KeyCode, int>, KEY_COUNT> keyboard_events{};
+        std::array<utils::Event<KeyCode, int>, KEY_COUNT> key_events{};
     };
 
     template<InputType T>
@@ -54,9 +54,8 @@ namespace cup::input {
     template<InputType T>
     Action<T>& ActionMap::createAction(std::string&& name) 
     {
-        if (name_to_index.find(name) != name_to_index.end()) {
-            throw std::runtime_error("Action with same name already exists");
-        }
+        assert(name_to_index.find(name) == name_to_index.end()
+            && "Action with same name already exists");
         
         // insert in the right vector
         name_to_index.emplace(name, getActionVector<T>().size());

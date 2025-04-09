@@ -2,7 +2,6 @@
 
 #include "inputs/types.hpp"
 #include <functional>
-#include <unordered_map>
 #include <utils/event.h>
 #include <glm/glm.hpp>
 #include <vector>
@@ -47,6 +46,7 @@ namespace cup::input {
     template<>
     class Action<InputType::Axis1D> {
         friend class ActionMap;
+        friend class Action<InputType::Axis2D>;
     public:
         Action(ActionMap& actionMap) : action_map(actionMap) {}
         Action(const Action<InputType::Axis1D>&) = delete;
@@ -60,7 +60,7 @@ namespace cup::input {
         void disable() {enabled = false;}
 
         void addBinding(Axis1DCode axis);
-        void addBinding(CompositeAxis1DCode axis);
+        void addBinding(KeyCode left, KeyCode right);
     private:
         void onKeyEvent(KeyCode key, int action);
 
@@ -72,4 +72,30 @@ namespace cup::input {
     };
 
 ////  Axis 2D  ////////////////////////////////////////////////////////////////
+
+    template<>
+    class Action<InputType::Axis2D> {
+        friend class ActionMap;
+    public:
+        Action(ActionMap& actionMap) : x(actionMap), y(actionMap) {}
+        Action(const Action<InputType::Axis2D>&) = delete;
+        Action& operator=(const Action<InputType::Axis2D>&) = delete;
+        Action(Action<InputType::Axis2D>&&) = default;
+        Action& operator=(Action<InputType::Axis2D>&&) = default;
+ 
+        glm::vec2 value() { return {x.value(), y.value()}; }
+        
+        void enable() { x.enable(); y.enable(); }
+        void disable() {x.disable();y.disable();}
+
+        void addBinding(Axis1DCode axis_x, Axis1DCode axis_y);
+        void addBinding(Axis1DCode axis_x, KeyCode down, KeyCode up);
+        void addBinding(KeyCode left, KeyCode right, Axis1DCode axis_y);
+        void addBinding(KeyCode left, KeyCode right, KeyCode down, KeyCode up);
+    private: 
+        void onKeyEvent(KeyCode key, int action);
+
+        Action<InputType::Axis1D> x;
+        Action<InputType::Axis1D> y;
+    };
 }

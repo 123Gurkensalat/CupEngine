@@ -15,6 +15,7 @@ InputManager* InputManager::instance = nullptr;
 void InputManager::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if (action != GLFW_PRESS && action != GLFW_RELEASE) return;
+    if (glfwKey_to_key(key) == KEY_UNDEFINED) return;
 
     auto& inputManager = Window::getUserTupleElement<InputManager>(window);
 

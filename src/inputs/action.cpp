@@ -3,7 +3,6 @@
 #include "types.hpp"
 #include <GLFW/glfw3.h>
 #include <algorithm>
-#include <iostream>
 
 using namespace cup::input; 
 
@@ -27,7 +26,7 @@ void Action<InputType::Key>::onKeyEvent(KeyCode key, int action)
 
 void Action<InputType::Key>::addBinding(KeyCode key) 
 {
-    action_map.get().keyboard_events[key].Subscribe(this, &Action<InputType::Key>::onKeyEvent);         
+    action_map.get().key_events[key].Subscribe(this, &Action<InputType::Key>::onKeyEvent);         
 }
 
 ////  Axis 1D  ////////////////////////////////////////////////////////////////
@@ -54,18 +53,16 @@ void Action<InputType::Axis1D>::addBinding(Axis1DCode axis)
     bindings.emplace_back(axis);
 }
 
-void Action<InputType::Axis1D>::addBinding(CompositeAxis1DCode axis) 
+void Action<InputType::Axis1D>::addBinding(KeyCode left, KeyCode right) 
 {
-    composite_bindings.emplace_back(axis);
-    action_map.get().keyboard_events[axis.left].Subscribe(this, &Action<InputType::Axis1D>::onKeyEvent);
-    action_map.get().keyboard_events[axis.right].Subscribe(this, &Action<InputType::Axis1D>::onKeyEvent);
+    composite_bindings.emplace_back(left, right);
+    action_map.get().key_events[left].Subscribe(this, &Action<InputType::Axis1D>::onKeyEvent);
+    action_map.get().key_events[right].Subscribe(this, &Action<InputType::Axis1D>::onKeyEvent);
 }
 
 void Action<InputType::Axis1D>::onKeyEvent(KeyCode key, int action) 
 {
     if (!enabled) return;
-
-    std::cout << "yes" << std::endl;
 
     for (auto& axis_binding : composite_bindings) {
         if (axis_binding.hasKey(key)) {
@@ -75,3 +72,34 @@ void Action<InputType::Axis1D>::onKeyEvent(KeyCode key, int action)
 }
 
 ////  Axis 2D  ////////////////////////////////////////////////////////////////
+
+
+void Action<InputType::Axis2D>::addBinding(Axis1DCode axis_x, Axis1DCode axis_y) 
+{
+    x.addBinding(axis_x);
+    y.addBinding(axis_y);
+}
+
+void Action<InputType::Axis2D>::addBinding(Axis1DCode axis_x, KeyCode down, KeyCode up) 
+{
+    x.addBinding(axis_x);
+    y.addBinding(down, up);
+}
+
+void Action<InputType::Axis2D>::addBinding(KeyCode left, KeyCode right, Axis1DCode axis_y)
+{
+    x.addBinding(left, right);
+    y.addBinding(axis_y);
+}
+
+void Action<InputType::Axis2D>::addBinding(KeyCode left, KeyCode right, KeyCode down, KeyCode up) 
+{
+    x.addBinding(left, right);
+    y.addBinding(down, up);
+}
+
+void Action<InputType::Axis2D>::onKeyEvent(KeyCode key, int action) 
+{
+    x.onKeyEvent(key, action);
+    y.onKeyEvent(key, action);
+}
