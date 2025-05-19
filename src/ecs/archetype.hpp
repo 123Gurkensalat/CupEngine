@@ -4,9 +4,8 @@
 #include "typedefs.hpp"
 #include <cassert>
 #include <functional>
-#include <iostream>
 #include <memory>
-#include <ostream>
+#include <stack>
 #include <tuple>
 #include <unordered_map>
 
@@ -26,9 +25,9 @@ namespace cup::ecs {
         
         entityComponentsData operator[](uint32_t i);
 
-        void addEntry(entityComponentsData data);
+        void addEntry(entityId entity, entityComponentsData data);
 
-        void deleteEntry(uint32_t entry);
+        entityId deleteEntry(uint32_t entry);
 
         template<typename ...Args>
         void forEach(std::function<void(Args&...)>& func);
@@ -39,6 +38,7 @@ namespace cup::ecs {
     private: 
         archetypeId id_;
         uint32_t entries{0};
+        std::stack<entityId> lastEntities;
         std::unordered_map<componentId, std::unique_ptr<IComponentArray>> componentArrays{};
     };
 
@@ -50,7 +50,7 @@ namespace cup::ecs {
         assert(T::id < MAX_COMPONENT_TYPES);
 
         id_ = 1 << T::id;
-        componentArrays.insert({T::id, std::make_unique<ComponentArray<T>>()});
+        componentArrays.emplace(T::id, std::make_unique<ComponentArray<T>>());
     }
 
     template<typename T>
@@ -60,10 +60,10 @@ namespace cup::ecs {
 
         id_ = base.id() | (1 << T::id);
         for (auto& [c_id, array] : base.componentArrays) {
-            componentArrays.insert({c_id, array->createNewArray()});
+            componentArrays.emplace(c_id, array->createNewArray());
         } 
 
-        componentArrays.insert({T::id, std::make_unique<ComponentArray<T>>()});
+        componentArrays.emplace(T::id, std::make_unique<ComponentArray<T>>());
     }
 
     template<typename ...Args>

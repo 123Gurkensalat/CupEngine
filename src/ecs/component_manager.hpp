@@ -40,6 +40,7 @@ namespace cup::ecs {
         void updateComponentArchetypesMap(Archetype& newArchetype);
 
         std::unordered_map<entityId, Record> entity_archetypes; // what entity is in what archetype
+        std::unordered_map<archetypeId, entityId> archetype_entities; // what archetype has which entites
         std::unordered_map<archetypeId, Archetype> archetypes;
         std::unordered_map<componentId, archetypeIdSet> component_archetypes; // what component is in what archetype
     };
@@ -62,10 +63,11 @@ namespace cup::ecs {
             
             // create component and add it to the archetype
             T* component = new T();
-            archetype.addEntry({{T::id, component}});
+            archetype.addEntry(entity, {{T::id, component}});
 
             // update entity records
             entity_archetypes.insert({entity, {archetype, archetype.size() - 1}});
+            archetype_entities.insert({1 << T::id, entity});
 
             return getComponent<T>(entity);
         } 
@@ -87,13 +89,14 @@ namespace cup::ecs {
             updateComponentArchetypesMap(archetype);
         }
         // move data to new entry
-        archetype.addEntry(data);
+        archetype.addEntry(entity, data);
 
         // remove entity from old archtype
-        record.archetype.get().deleteEntry(record.row);
+        entityId movedEntity = record.archetype.get().deleteEntry(record.row);
 
         // update records
         entity_archetypes.at(entity) = {archetype, archetype.size() - 1};
+        entity_archetypes.at(movedEntity).row = record.row;
 
         return getComponent<T>(entity);
     }

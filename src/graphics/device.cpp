@@ -1,6 +1,5 @@
 #include "device.hpp"
 #include "window.hpp"
-#include "swap_chain.hpp"
 
 #include <cstdint>
 #include <cstring>
@@ -256,17 +255,15 @@ void Device::createCommandPool(uint32_t queueFamilyIndex, VkCommandPool* command
 
 void Device::createDescriptorPool() 
 {
-    std::array<VkDescriptorPoolSize, 2> poolSizes{};
-    poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSizes[0].descriptorCount = SwapChain::MAX_FRAMES_IN_FLIGHT;
-    poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSizes[1].descriptorCount = SwapChain::MAX_FRAMES_IN_FLIGHT;
+    std::array<VkDescriptorPoolSize, 1> poolSizes{};
+    poolSizes[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    poolSizes[0].descriptorCount = 128; // MAX #Textures
 
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
     poolInfo.pPoolSizes = poolSizes.data();
-    poolInfo.maxSets = SwapChain::MAX_FRAMES_IN_FLIGHT;
+    poolInfo.maxSets = 1;
 
     if (vkCreateDescriptorPool(device_, &poolInfo, nullptr, &descriptorPool_) != VK_SUCCESS) {
         throw std::runtime_error("failed to create descriptor pool!");

@@ -11,6 +11,8 @@ namespace cup {
     public:
         static uint32_t getSpriteIndex(const char* path);
         static Sprite& getSprite(uint32_t spriteIndex);
+
+        static std::vector<Sprite>& getSprites() { return instance->sprites; }
     private:
         ResourceManager(Device& device);
 

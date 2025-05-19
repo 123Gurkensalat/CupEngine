@@ -1,5 +1,6 @@
 #include "sprite.hpp"
 
+#include <iostream>
 #include <stb_image.h>
 #include <stdexcept>
 #include <cstring>
@@ -18,7 +19,7 @@ Sprite::Sprite(Device* device, const char* path) : device(device)
     VkExtent2D texExtent = createTextureImage(path);
     createTextureImageView();
     createTextureSampler();
-
+    
     float unitsWidth = (float)texExtent.width / pixelsToUnits / 2;
     float unitsHeight = (float)texExtent.height / pixelsToUnits / 2;
     vertices = {
@@ -30,10 +31,11 @@ Sprite::Sprite(Device* device, const char* path) : device(device)
 
     device->createTransferBuffer(vertexBufferSize, vertices.data(), &vertexBuffer, &vertexBufferMemory, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
     device->createTransferBuffer(indexBufferSize, vertexIndices.data(), &indexBuffer, &indexBufferMemory, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+    std::cout<<"creating image"<<std::endl;
 }
 
 Sprite::~Sprite() 
-{    
+{
     vkDestroySampler(device->device(), textureSampler, nullptr);
     vkDestroyImageView(device->device(), textureImageView, nullptr);
     vkDestroyImage(device->device(), textureImage, nullptr);

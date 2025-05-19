@@ -1,23 +1,22 @@
 #include "archetype.hpp"
 #include "ecs/typedefs.hpp"
 
-using cup::ecs::Archetype;
-using cup::ecs::entityComponentsData;
+using namespace cup::ecs;
 
 entityComponentsData Archetype::operator[](uint32_t i) 
 {
-    assert(i < entries && "index out of scope!");
+    assert(i < entries && "Index out of scope!");
 
     entityComponentsData res{};
     
     for (auto& [id, array] : componentArrays) {
-        res.insert({id, array->get(i)});
+        res.emplace(id, array->get(i));
     }
 
     return res;
 }
 
-void Archetype::addEntry(entityComponentsData data) 
+void Archetype::addEntry(entityId entity, entityComponentsData data) 
 {
     assert(data.size() == componentArrays.size() && "inserted data does not match with archetype!");           
     
@@ -25,18 +24,23 @@ void Archetype::addEntry(entityComponentsData data)
         array->push_back(data.at(id));
     }
 
+    lastEntities.emplace(entity);
+
     entries++;
 }
 
-
-void Archetype::deleteEntry(uint32_t entry) 
+entityId Archetype::deleteEntry(uint32_t entry) 
 {
-    assert(entry < entries && "index out of scope!");
+    assert(entry < entries && "Index out of scope!");
 
     for (auto& [_, array] : componentArrays) {
         array->pop_at(entry);
     }
 
     entries--;
+
+    entityId lastEntity = lastEntities.top();
+    lastEntities.pop();
+    return lastEntity;
 }
 

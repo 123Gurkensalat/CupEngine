@@ -17,7 +17,8 @@ namespace cup
         void run();
         Window& createWindow(const std::string& title);
 
-        const Window& mainWindow() const { return *windows[0]; }
+        Window& mainWindow() const { return *windows[0]; }
+        Renderer& mainRenderer() const { return *renderers[0]; }
         const Window& currentWindow() const { return *currentWindow_; }
 
         Device& getDevice() const { return *device; }

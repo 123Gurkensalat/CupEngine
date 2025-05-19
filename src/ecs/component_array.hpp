@@ -98,7 +98,9 @@ namespace cup::ecs
     template<typename T>
     void ComponentArray<T>::pop_at(uint32_t i) 
     {
-        buffer_[i] = std::move(buffer_[size_ - 1]);
+        if (i != size_ - 1) {
+            buffer_[i] = std::move(buffer_[size_ - 1]);
+        } 
         size_--;
     }
 

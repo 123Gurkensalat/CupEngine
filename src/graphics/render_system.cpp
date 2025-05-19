@@ -41,18 +41,16 @@ void RenderSystem::createPipeline(PipelineConfigInfo& pipelineConfig)
     pipeline = std::make_unique<Pipeline>(device, pipelineConfig);
 }
 
-void RenderSystem::createDescriptorSets(VkDescriptorSetLayout layout, std::vector<VkDescriptorSet>& descriptorSets) 
+void RenderSystem::createDescriptorSets(VkDescriptorSetLayout layout, uint32_t count, VkDescriptorSet* descriptorSets) 
 {
-    std::vector<VkDescriptorSetLayout> layouts{SwapChain::MAX_FRAMES_IN_FLIGHT, layout};
+    std::vector<VkDescriptorSetLayout> layouts{count, layout};
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     allocInfo.descriptorPool = device.descriptorPool();
-    allocInfo.descriptorSetCount = SwapChain::MAX_FRAMES_IN_FLIGHT;
+    allocInfo.descriptorSetCount = count;
     allocInfo.pSetLayouts = layouts.data();
 
-    descriptorSets.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
-
-    if (vkAllocateDescriptorSets(device.device(), &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
+    if (vkAllocateDescriptorSets(device.device(), &allocInfo, descriptorSets) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate descripot sets!");
     }
 }

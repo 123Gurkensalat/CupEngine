@@ -13,19 +13,18 @@ namespace cup {
         ~SpriteRendererSystem();
         void render(VkCommandBuffer commandBuffer, float ascpectRatio);
 
+        void setDescriptorSet() const;
     private:
-        struct UniformBufferObject {
-            glm::mat4 model;
-            glm::mat4 view;
-            glm::mat4 proj;
+        struct alignas(16) PushConstants{
+            glm::vec4 mvp_mat[3]; // mat3 with right alignement
+            uint32_t textureIndex;
         };
         
         void createLayouts();
         void createPipeline(VkRenderPass);
 
         void createDescriptorSets();
-
-        void updateDescriptorSets(size_t currentFrame, VkDescriptorImageInfo& imageInfo) const;
+        void createPushConstants();
 
         ecs::ECS& ecs;
         Device& device;
@@ -33,13 +32,6 @@ namespace cup {
         // pipeline infos
         VkDescriptorSetLayout descriptorSetLayout;
         VkPipelineLayout pipelineLayout;
-
-        // uniform buffers
-        std::vector<VkDescriptorSet> descriptorSets;
-        std::vector<VkBuffer> uniformBuffers;
-        std::vector<VkDeviceMemory> uniformBuffersMemory;
-        std::vector<void*> uniformBuffersMapped;
-
-        uint32_t currentFrame = 0;
+        VkDescriptorSet descriptorSet;
     };
 }

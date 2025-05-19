@@ -4,9 +4,11 @@
 #include "ecs/ecs.hpp"
 #include "graphics/camera.hpp"
 #include "graphics/render_system.hpp"
-#include "graphics/swap_chain.hpp"
+#include "resource_manager.hpp"
+#include <cassert>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
+#include <glm/fwd.hpp>
 #include <glm/trigonometric.hpp>
 #include <iostream>
 #include <vector>
@@ -22,42 +24,35 @@ SpriteRendererSystem::SpriteRendererSystem(ECS& ecs, Device& device, VkRenderPas
 { 
     createLayouts();
     createPipeline(renderPass);
-    RenderSystem::createUniformBuffers<UniformBufferObject>(uniformBuffers, uniformBuffersMemory, uniformBuffersMapped);
     createDescriptorSets();
 }
 
 SpriteRendererSystem::~SpriteRendererSystem()
 {
-    for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
-        vkDestroyBuffer(device.device(), uniformBuffers[i], nullptr);
-        vkFreeMemory(device.device(), uniformBuffersMemory[i], nullptr);
-    }
-
     vkDestroyDescriptorSetLayout(device.device(), descriptorSetLayout, nullptr);
     vkDestroyPipelineLayout(device.device(), pipelineLayout, nullptr);
 }
 
 void SpriteRendererSystem::createLayouts() 
 {
-    std::vector<VkDescriptorSetLayoutBinding> bindings(2);
-
-    // ubo layout
-    bindings[0].binding = 0;
-    bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    bindings[0].descriptorCount = 1;
-    bindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-    bindings[0].pImmutableSamplers = nullptr;
+    std::vector<VkDescriptorSetLayoutBinding> bindings(1);
 
     // sampler layout
-    bindings[1].binding = 1;
-    bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    bindings[1].descriptorCount = 1;
-    bindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-    bindings[1].pImmutableSamplers = nullptr;
+    bindings[0].binding = 0;
+    bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    bindings[0].descriptorCount = 128; // MAX #Textures
+    bindings[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    bindings[0].pImmutableSamplers = nullptr;
 
     RenderSystem::createDescriptorSetLayout(bindings, &descriptorSetLayout);
 
-    RenderSystem::createPipelineLayout({descriptorSetLayout}, {}, &pipelineLayout);
+    // push constants
+    VkPushConstantRange pushConstant{};
+    pushConstant.offset = 0;
+    pushConstant.size = sizeof(PushConstants);
+    pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+
+    RenderSystem::createPipelineLayout({descriptorSetLayout}, {pushConstant}, &pipelineLayout);
 }
 
 void SpriteRendererSystem::createPipeline(VkRenderPass renderPass) 
@@ -73,34 +68,20 @@ void SpriteRendererSystem::createPipeline(VkRenderPass renderPass)
 
 void SpriteRendererSystem::createDescriptorSets() 
 {
-    RenderSystem::createDescriptorSets(descriptorSetLayout, descriptorSets);
-
-    for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
-        VkDescriptorBufferInfo bufferInfo{};
-        bufferInfo.buffer = uniformBuffers[i];
-        bufferInfo.offset = 0;
-        bufferInfo.range = sizeof(UniformBufferObject);
-
-        std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
-        descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrites[0].dstSet = descriptorSets[i];
-        descriptorWrites[0].dstBinding = 0;
-        descriptorWrites[0].dstArrayElement = 0;
-        descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        descriptorWrites[0].descriptorCount = 1;
-        descriptorWrites[0].pBufferInfo = &bufferInfo;
-
-        vkUpdateDescriptorSets(
-            device.device(), 
-            static_cast<uint32_t>(descriptorWrites.size()), 
-            descriptorWrites.data(), 
-            0, nullptr);
-    }
+    RenderSystem::createDescriptorSets(descriptorSetLayout, 1, &descriptorSet);
 }        
 
 void SpriteRendererSystem::render(VkCommandBuffer commandBuffer, float aspectRatio) 
 {
     pipeline->bind(commandBuffer);
+
+    vkCmdBindDescriptorSets(
+        commandBuffer, 
+        VK_PIPELINE_BIND_POINT_GRAPHICS, 
+        pipelineLayout, 
+        0, 1, 
+        &descriptorSet, 
+        0, nullptr);
 
     static auto startTime = std::chrono::high_resolution_clock::now();
     static auto lastTime = startTime;
@@ -117,44 +98,46 @@ void SpriteRendererSystem::render(VkCommandBuffer commandBuffer, float aspectRat
     }
 
     std::function<void(SpriteRenderer&, Transform&)> lambda = [&](SpriteRenderer& spriteRenderer, Transform& transform){
-
-        UniformBufferObject ubo;
         transform.rotation = time * glm::radians(90.0f);
-        ubo.model = transform.mat();
-        ubo.view = Camera::main.worldToCamMat();
-        ubo.proj = glm::mat4({1.0f, -1.0f, 1.0f, 1.0f});
 
-        memcpy(uniformBuffersMapped[currentFrame], &ubo, sizeof(ubo));
+        PushConstants pushConstants;
+        pushConstants.textureIndex = spriteRenderer.spriteIndex();
+        auto mvp_mat = Camera::main.worldToCamMat() * transform.mat();
+        pushConstants.mvp_mat[0] = glm::vec4(mvp_mat[0], 0.0f);
+        pushConstants.mvp_mat[1] = glm::vec4(mvp_mat[1], 0.0f);
+        pushConstants.mvp_mat[2] = glm::vec4(mvp_mat[2], 0.0f);
 
-        VkDescriptorImageInfo imageInfo = spriteRenderer.sprite().imageInfo();
-        updateDescriptorSets(currentFrame, imageInfo);
-
-        vkCmdBindDescriptorSets(
-                commandBuffer, 
-                VK_PIPELINE_BIND_POINT_GRAPHICS, 
-                pipelineLayout, 
-                0, 1, 
-                &descriptorSets[currentFrame], 
-                0, nullptr);
-
+        vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &pushConstants);
+        
         spriteRenderer.sprite().bind(commandBuffer);
         spriteRenderer.sprite().draw(commandBuffer);
     };
 
     ecs.forEach(lambda);  
-    currentFrame = (currentFrame + 1) % SwapChain::MAX_FRAMES_IN_FLIGHT;
 }
 
-void SpriteRendererSystem::updateDescriptorSets(size_t currentFrame, VkDescriptorImageInfo& imageInfo) const
+void SpriteRendererSystem::setDescriptorSet() const
 {
+    auto& sprites = ResourceManager::getSprites();
+    assert(sprites.size() > 0 && "Default texture not loaded!");
+
+    std::array<VkDescriptorImageInfo, 128> imageInfos;
+    for (int i = 0; i < sprites.size(); i++) {
+        imageInfos[i] = sprites[i].imageInfo();
+    }
+
+    for (int i = sprites.size(); i < 128; i++) {
+        imageInfos[i] = sprites[0].imageInfo(); // default sprite
+    }
+
     VkWriteDescriptorSet descriptorWrite{};
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = descriptorSets[currentFrame];
-    descriptorWrite.dstBinding = 1;
+    descriptorWrite.dstSet = descriptorSet;
+    descriptorWrite.dstBinding = 0;
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.pImageInfo = &imageInfo;
+    descriptorWrite.descriptorCount = 128; // MAX #Textures
+    descriptorWrite.pImageInfo = imageInfos.data();
 
     vkUpdateDescriptorSets(
         device.device(), 

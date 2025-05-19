@@ -1,5 +1,6 @@
 #include "app.hpp"
 
+#include "ecs/components/rigidbody.hpp"
 #include "ecs/components/sprite_renderer.hpp"
 #include "ecs/ecs.hpp"
 #include "ecs/components/transform.hpp"
@@ -25,10 +26,15 @@ void App::testECS()
     entityId entity2 = ecs.createEntity();
     entityId entity3 = ecs.createEntity();
     ecs.addComponent<Transform>(entity1);
-    ecs.addComponent<Transform>(entity3);
+    auto& transform = ecs.addComponent<Transform>(entity3);
+    auto& rigidBody = ecs.addComponent<Rigidbody>(entity3);
+    transform.position.x = 0.5f;
+    rigidBody.velocity = {0.0f, 0.1f};
     auto& renderer = ecs.addComponent<SpriteRenderer>(entity1);
+    //auto& renderer2 = ecs.addComponent<SpriteRenderer>(entity3);
 
-    renderer.setSprite("../res/texture.jpg");
+    renderer.setSprite("../res/no_texture.jpg");
+    //renderer2.setSprite("../res/texture.jpg"); // default sprite
 }
 
 void App::testInputManager() 
@@ -50,5 +56,6 @@ void App::run()
 {
     testECS();
     testInputManager();
+    windowManager.mainRenderer().getSpriteRenderSystem().setDescriptorSet();
     windowManager.run();
 }

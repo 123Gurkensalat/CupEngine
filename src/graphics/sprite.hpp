@@ -19,12 +19,13 @@ namespace cup {
         Sprite() = delete;
         Sprite(Device* device, const char* path);
         Sprite(const Sprite&) = delete;
+        Sprite& operator=(const Sprite&) = delete;
+        Sprite(Sprite&) = delete;
+        Sprite& operator=(Sprite&) = delete;
         Sprite(Sprite&&) = default;
+        Sprite& operator=(Sprite&&) = delete;
 
         ~Sprite();
-
-        Sprite& operator=(const Sprite&) = delete;
-        Sprite& operator=(Sprite&&) = delete;
 
         VkDescriptorImageInfo imageInfo() const;
 

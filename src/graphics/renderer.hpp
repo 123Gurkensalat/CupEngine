@@ -27,6 +27,7 @@ namespace cup
 
         bool finished() const { return swapChain_.fencesFinished(); }
 
+        SpriteRendererSystem& getSpriteRenderSystem() { return *spriteRenderSystem; }
     private:
         void createCommandPool(uint32_t queueFamilyIndex, VkCommandPool* commandPool);
         void createCommandBuffer();

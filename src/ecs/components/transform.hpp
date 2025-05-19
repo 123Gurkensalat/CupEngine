@@ -12,15 +12,14 @@ namespace cup {
         glm::vec2 scale{1, 1};
         float rotation{0};
 
-        glm::mat4 mat(){
+        glm::mat3 mat(){
             auto s = glm::sin(rotation);
             auto c = glm::cos(rotation);
 
             return {
-                {c*scale.x,  s*scale.y,  0,          0},
-                {-s*scale.x, c*scale.y,  0,          0},
-                {0,          0,          1,          0},
-                {position.x, position.y, position.z, 1}
+                {c*scale.x,  s*scale.y, 0},
+                {-s*scale.x, c*scale.y, 0},
+                {position.x, position.y, 1}
             };
         }
     };

@@ -10,7 +10,7 @@ namespace cup{
     public:
         Camera() = default;
 
-        glm::mat4 worldToCamMat();
+        glm::mat3 worldToCamMat();
 
         static Camera main;
         

@@ -19,8 +19,10 @@ namespace cup
         void createPipeline(PipelineConfigInfo& pipelineConfig);
 
         template<typename T>
+        void createPushConstants();
+        template<typename T>
         void createUniformBuffers(std::vector<VkBuffer>& uniformBuffers, std::vector<VkDeviceMemory>& uniformBuffersMemory, std::vector<void*>& uniformBuffersMapped); 
-        void createDescriptorSets(VkDescriptorSetLayout layout, std::vector<VkDescriptorSet>& descriptorSets);
+        void createDescriptorSets(VkDescriptorSetLayout layout, uint32_t count, VkDescriptorSet* descriptorSets);
 
         std::unique_ptr<Pipeline> pipeline;
 

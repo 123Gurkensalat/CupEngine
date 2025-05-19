@@ -15,7 +15,10 @@ void ComponentManager::updateComponentArchetypesMap(Archetype& newArchetype)
 void ComponentManager::removeEntity(entityId entity) 
 {
     auto& record = entity_archetypes.at(entity);
-    record.archetype.get().deleteEntry(record.row);
+    auto movedId = record.archetype.get().deleteEntry(record.row);
+    entity_archetypes.at(movedId).row = record.row;
+
     entity_archetypes.erase(entity);
+
 }
 
