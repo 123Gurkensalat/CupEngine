@@ -1,27 +1,24 @@
 #pragma once
 
-#include "graphics/validator.hpp"
-#include <vulkan/vulkan_core.h>
+#include "utils/types.hpp"
+#include "validator.hpp"
+
+#include <vulkan/vulkan.h>
 
 namespace cup {
-    class Instance {
-    public:
-        Instance();
-        ~Instance();
+class Instance : public NonCopyable, NonMovable {
+public:
+    Instance(const char* app_name, uint32_t app_version);
+    ~Instance();
 
-        Instance(const Instance&) = delete;
-        Instance& operator=(const Instance&) = delete;
-        Instance(Instance&&) = delete;
-        Instance& operator=(Instance&&) = delete;
+    operator VkInstance() const { return instance_; }
+    VkInstance get() const { return instance_; }
 
-        operator VkInstance() const { return instance_; }
-        VkInstance instance() const { return instance_; }
-        const Validator& validator() const { return validator_;}
+    const Validator& validator() const { return validator_; }
 
-    private:
-        void createInstance(); 
-
-        VkInstance instance_;
-        Validator validator_{};
-    };
-}
+private:
+    void createInstance(const char* app_name, uint32_t app_version);
+    VkInstance instance_;
+    Validator validator_{};
+};
+} // namespace cup
