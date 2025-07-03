@@ -9,6 +9,7 @@ using cup::Instance;
 Instance::Instance(const char* app_name, uint32_t app_version)
 {
     glfwInit();
+    createInstance(app_name, app_version);
 }
 
 Instance::~Instance()
