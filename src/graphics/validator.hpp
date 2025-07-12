@@ -1,49 +1,44 @@
 #pragma once
 
-#include <vulkan/vulkan_core.h>
+#include "utils/types.hpp"
 
 #include <cstdint>
 #include <vector>
+#include <vulkan/vulkan_core.h>
 
 namespace cup {
-    class Validator {
-    public:
-        Validator() = default;
-        Validator(const Validator&) = delete;
-        Validator& operator=(const Validator&) = delete;
+class Validator : public NonCopyable {
+public:
+    Validator() = default;
 
-        void setupDebugMessenger(VkInstance instance);
-        void cleanUpDebugMessenger(VkInstance instance);
+    void setupDebugMessenger(VkInstance instance);
+    void cleanUpDebugMessenger(VkInstance instance);
 
-        VkDebugUtilsMessengerCreateInfoEXT getCreateInfo() const;
+    VkDebugUtilsMessengerCreateInfoEXT getCreateInfo() const;
 
-        std::vector<const char*> getRequiredExtensions() const;
+    std::vector<const char*> getRequiredExtensions() const;
 
-        /// checks if required validation Layers are compatible
-        /// returns if successfull
-        bool checkValidationLayerSupport() const;
+    /// checks if required validation Layers are compatible
+    /// returns if successfull
+    bool checkValidationLayerSupport() const;
 
-        inline uint32_t layerCount() const { return static_cast<uint32_t>(validationLayers.size()); }
+    inline static uint32_t minMessageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
 
-        /// defaults to warning messages 
-        static uint32_t minMessageSeverity;
-        const std::vector<const char*> validationLayers = {
-            "VK_LAYER_KHRONOS_validation"
-        };
+    const char* validationLayer = "VK_LAYER_KHRONOS_validation";
 
-    #ifdef NDEBUG
-        const bool enableValidationLayers = false;
-    #else
-        const bool enableValidationLayers = true;
-    #endif
+#ifdef NDEBUG
+    inline static constexpr bool enableValidationLayers = false;
+#else
+    inline static constexpr bool enableValidationLayers = true;
+#endif
 
-    private:
-        static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-            VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-            VkDebugUtilsMessageTypeFlagsEXT messageType,
-            const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-            void* pUserData);
+private:
+    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+        VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+        VkDebugUtilsMessageTypeFlagsEXT messageType,
+        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+        void* pUserData);
 
-        VkDebugUtilsMessengerEXT debugMessenger;
-    };
-}
+    VkDebugUtilsMessengerEXT debugMessenger;
+};
+} // namespace cup

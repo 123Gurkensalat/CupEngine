@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.16)
 
 project(CupEngine VERSION 0.1)
 
@@ -8,19 +8,39 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Vulkan REQUIRED)
 find_package(glfw3 3.3 REQUIRED)
 
-# add_subdirectory(external)
-
 # finde files recursively
 file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
+include(FetchContent)
 
-target_include_directories(${PROJECT_NAME} PUBLIC
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+
+# Set destination for external headers
+set(EXTERNAL_DIR ${CMAKE_BINARY_DIR}/external)
+
+# Download the header if it doesn't exist
+if (NOT EXISTS "${EXTERNAL_DIR}/stb_image.h")
+    file(DOWNLOAD
+        https://raw.githubusercontent.com/nothings/stb/master/stb_image.h
+        ${EXTERNAL_DIR}/stb_image.h
+        STATUS download_status
+        SHOW_PROGRESS
+    )
+    list(GET download_status 0 code)
+    if (NOT code EQUAL 0)
+        message(FATAL_ERROR "Failed to download stb_image.h")
+    endif()
+endif()
+
+target_include_directories(${PROJECT_NAME} 
+PRIVATE
     ${PROJECT_SOURCE_DIR}/src
-    ${PROJECT_SOURCE_DIR}/external
+    ${EXTERNAL_DIR}
+    ${Vulkan_INCLUDE_DIRS}
 )
+
 
 target_link_libraries(${PROJECT_NAME} glfw ${Vulkan_LIBRARIES})
 

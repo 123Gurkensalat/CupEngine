@@ -62,9 +62,9 @@ void Instance::createInstance(const char* app_name, uint32_t app_version)
         .ppEnabledExtensionNames = extensions.data(),
     };
 
-    if (validator_.enableValidationLayers) {
-        instance_info.enabledLayerCount = static_cast<uint32_t>(validator_.validationLayers.size());
-        instance_info.ppEnabledLayerNames = validator_.validationLayers.data();
+    if constexpr (Validator::enableValidationLayers) {
+        instance_info.enabledLayerCount   = 1;
+        instance_info.ppEnabledLayerNames = &validator_.validationLayer;
 
         instance_info.pNext = &debug_info;
     } else {
